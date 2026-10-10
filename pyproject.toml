@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mailstead"
+version = "0.1.0"
+description = "Self-hosted Resend-backed email portal"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "Django>=5.2.18,<5.3",
+    "gunicorn>=26.0,<27",
+    "whitenoise>=6.12,<7",
+    "django-htmx>=1.29,<2",
+    "nh3>=0.3,<0.4",
+    "dj-database-url>=3.1,<4",
+    "psycopg[binary]>=3.3,<4",
+    "django-axes>=8.3,<9",
+    "PyJWT>=2.15,<3",
+    "cryptography>=44,<46",
+    "resend>=2.49,<3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8,<9",
+    "pytest-django>=4.11,<5",
+    "pytest-cov>=6,<7",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["mailstead*", "core*", "accounts*", "jobs*"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "core.settings_test"
+python_files = ["test_*.py", "*_test.py"]
+addopts = "-ra --strict-markers"
+markers = [
+    "postgres: requires DATABASE_URL pointing at Postgres",
+]

@@ -1,0 +1,34 @@
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      DEBUG: "1"
+      SECRET_KEY: dev-secret-change-me
+      APP_ENCRYPTION_KEY: dev-encryption-key
+      BOOTSTRAP_TOKEN: local-bootstrap-token
+      RESEND_API_KEY: ${RESEND_API_KEY:-re_placeholder}
+      MAIL_DOMAIN: ${MAIL_DOMAIN:-mail.example.com}
+      ADMIN_RECOVERY_EMAIL: ${ADMIN_RECOVERY_EMAIL:-admin@example.com}
+      PUBLIC_URL: http://localhost:8000
+      DATA_ROOT: /data
+      SKIP_WORKER_HEARTBEAT_CHECK: "0"
+    volumes:
+      - mailstead_data:/data
+
+  postgres:
+    profiles: ["postgres"]
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: mailstead
+      POSTGRES_PASSWORD: mailstead
+      POSTGRES_DB: mailstead
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+volumes:
+  mailstead_data:
+  pg_data:
