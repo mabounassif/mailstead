@@ -2,7 +2,7 @@
 
 Self-hosted Resend-backed email portal for 10-50 users, packaged as a one-service, one-volume Railway template. Source spec: [Project_Prompt.md](Project_Prompt.md).
 
-Status: **M1 complete.** M2–M5 in progress per milestones below. Progress section at the bottom is updated at each milestone handoff.
+Status: **M1–M5 complete** (2026-10-10). Progress section at the bottom is updated at each milestone handoff.
 
 ---
 
@@ -218,10 +218,12 @@ Each milestone ends with: tests green on SQLite (and Postgres where available), 
 - [x] M1 Foundation, deployment skeleton, users, admin, bootstrap (2026-10-10)
 - [x] M2 Durable sending/receiving, retention, mailbox UI (2026-10-10)
 - [x] M3 Storage enforcement and ops dashboard (2026-10-10)
-- [ ] M4 Resend usage, subscription labelling, alerts
-- [ ] M5 Enterprise client/mock, final verification, template docs
+- [x] M4 Resend usage, subscription labelling, alerts (2026-10-10)
+- [x] M5 Enterprise client/mock, final verification, template docs (2026-10-10)
 
 Completed checks:
 - **M1 (2026-10-10):** `pytest` — 10 passed, 1 skipped (Postgres marker; run with `DATABASE_URL=postgres://...`). Covers bootstrap one-time/consumed/redeploy, health/readiness, password reset to recovery email, rate limit, session invalidation, registration disabled, disabled mailbox login. Handoff: run `python -m mailstead.run` or `docker compose up`; open `/setup/<BOOTSTRAP_TOKEN>` once; worker heartbeat required for `/readyz` unless `SKIP_WORKER_HEARTBEAT_CHECK=1`.
 - **M2 (2026-10-10):** `pytest` — 30 passed, 1 skipped.
-- **M3 (2026-10-10):** `pytest` — 34 passed, 1 skipped. Storage ledger, reserve/commit, ops dashboard at `/ops/`, capacity labels measured/configured. Job queue with schedules, Resend webhook + inbound/outbound pipeline, reconcile/import command, mailbox UI (folders/search/compose/export), filtering/junk, HTML sanitizer. Handoff: set `RESEND_WEBHOOK_SECRET` or run `register_webhook` schedule after deploy; `manage.py import_received` for history.
+- **M3 (2026-10-10):** `pytest` — 34 passed, 1 skipped. Storage ledger, reserve/commit, ops dashboard at `/ops/`, capacity labels measured/configured.
+- **M4 (2026-10-10):** Usage snapshot parser, `/ops/resend-usage/`, alert dedupe, stale snapshot on error; `pytest` includes `test_m4_usage.py`.
+- **M5 (2026-10-10):** Enterprise client + `/ops/enterprise/`, `mock_vendor`, API contract and Railway/ops docs, `manage.py export`. `pytest` — 42 passed, 1 skipped (Postgres). **No Railway template published.** Job queue with schedules, Resend webhook + inbound/outbound pipeline, reconcile/import command, mailbox UI (folders/search/compose/export), filtering/junk, HTML sanitizer. Handoff: set `RESEND_WEBHOOK_SECRET` or run `register_webhook` schedule after deploy; `manage.py import_received` for history.

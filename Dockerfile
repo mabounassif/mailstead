@@ -15,6 +15,8 @@ COPY accounts ./accounts
 COPY jobs ./jobs
 COPY mail ./mail
 COPY provider ./provider
+COPY storage ./storage
+COPY enterprise ./enterprise
 COPY templates ./templates
 
 RUN pip install --upgrade pip && pip install .
