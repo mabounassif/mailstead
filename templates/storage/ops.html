@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Operations — Mailstead</title></head>
+<body>
+  <h1>Operations</h1>
+  <h2>Physical ({{ physical.label }})</h2>
+  <p>Total: {{ physical.total_bytes }} — Free: {{ physical.free_bytes }}</p>
+  <h2>Email ledger</h2>
+  <p>Consumed: {{ ledger.email_consumed_bytes }} — Reserved: {{ ledger.reserved_bytes }} — Overflow: {{ ledger.overflow_bytes }}</p>
+  <p>Effective writable email capacity: {{ effective_capacity }}</p>
+  <h2>Mailboxes</h2>
+  <ul>
+    {% for ms in mailboxes %}
+      <li>{{ ms.mailbox.address }} — {{ ms.charged_bytes }} / {{ ms.mailbox.quota_bytes }} ({{ ms.state }})</li>
+    {% endfor %}
+  </ul>
+  <p>Overflow items: {{ overflow_count }} — Dead jobs: {{ dead_jobs }}</p>
+  {% if worker %}<p>Worker heartbeat: {{ worker.updated_at }}</p>{% endif %}
+  {% if webhook %}<p>Webhook disabled: {{ webhook.webhook_disabled }}</p>{% endif %}
+</body>
+</html>

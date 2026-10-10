@@ -4,6 +4,7 @@ from django.urls import include, path
 
 from accounts.views import SetupView
 from core.views import healthz, readyz
+from provider.usage_views import usage_panel
 from provider.webhooks import resend_webhook
 
 
@@ -18,6 +19,8 @@ urlpatterns = [
     path("hooks/resend", resend_webhook),
     path("accounts/", include("accounts.urls")),
     path("mail/", include("mail.urls")),
+    path("ops/", include("storage.urls")),
+    path("ops/resend-usage/", usage_panel, name="usage_panel"),
     path("setup/<str:token>/", SetupView.as_view(), name="setup"),
     path("", home),
 ]

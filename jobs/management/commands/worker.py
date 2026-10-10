@@ -31,6 +31,7 @@ class Command(BaseCommand):
         # Register job handlers
         import mail.jobs  # noqa: F401
         import provider.jobs  # noqa: F401
+        import storage.jobs  # noqa: F401
 
         with ThreadPoolExecutor(max_workers=2) as pool:
             while not _shutdown:

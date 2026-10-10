@@ -1,8 +1,3 @@
-"""M2 stub; M3 replaces with real reserve-then-write."""
+from storage.services import reserve_inbound_bytes
 
-from contextlib import contextmanager
-
-
-@contextmanager
-def reserve_inbound_bytes(mailbox, nbytes: int):
-    yield
+__all__ = ["reserve_inbound_bytes"]

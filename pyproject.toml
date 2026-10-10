@@ -31,7 +31,7 @@ dev = [
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["mailstead*", "core*", "accounts*", "jobs*", "mail*", "provider*"]
+include = ["mailstead*", "core*", "accounts*", "jobs*", "mail*", "provider*", "storage*", "enterprise*", "mock_vendor*"]
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "core.settings_test"

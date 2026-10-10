@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Resend usage</title></head>
+<body>
+  <h1>Resend account totals (all applications on this API key's team)</h1>
+  {% if restricted_key %}
+    <p>Requires Full access API key for usage API.</p>
+  {% endif %}
+  {% if snapshot %}
+    <p>Fetched: {{ snapshot.fetched_at }} {% if stale %}(stale/warning){% endif %}</p>
+    {% if not snapshot.ok %}<p>Error: {{ snapshot.error_message }}</p>{% endif %}
+    <pre>{{ snapshot.parsed_json }}</pre>
+  {% endif %}
+  <p>Plan: not provided by Resend API{% if plan_label %} — admin-entered label: {{ plan_label }} (not verified){% endif %}</p>
+  <p>Portal-only message count: {{ portal_message_count }} (labelled separately)</p>
+  <form method="post">{% csrf_token %}<button>Refresh</button></form>
+</body>
+</html>
