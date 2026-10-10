@@ -77,6 +77,8 @@ INSTALLED_APPS = [
     "core",
     "accounts",
     "jobs",
+    "mail",
+    "provider",
 ]
 
 MIDDLEWARE = [
@@ -168,6 +170,9 @@ PASSWORD_RESET_TIMEOUT = 3600  # 1 hour
 DEFAULT_MAILBOX_QUOTA_BYTES = int(os.environ.get("DEFAULT_MAILBOX_QUOTA_BYTES", str(250 * 1024 * 1024)))
 
 WORKER_HEARTBEAT_MAX_AGE_SECONDS = int(os.environ.get("WORKER_HEARTBEAT_MAX_AGE_SECONDS", "120"))
+
+MAX_MESSAGE_BYTES = int(os.environ.get("MAX_MESSAGE_BYTES", str(30 * 1024 * 1024)))
+RESEND_WEBHOOK_SECRET = os.environ.get("RESEND_WEBHOOK_SECRET", "")
 
 PASSWORD_RESET_RATE_LIMIT = os.environ.get("PASSWORD_RESET_RATE_LIMIT", "5/h")
 

@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Search — Mailstead</title></head>
+<body>
+  <form method="get"><input name="q" value="{{ q }}"><button>Search</button></form>
+  <ul>
+    {% for copy in page %}
+      <li><a href="{% url 'mail_message' copy.id %}">{{ copy.message.subject }}</a></li>
+    {% endfor %}
+  </ul>
+</body>
+</html>

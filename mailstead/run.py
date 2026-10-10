@@ -31,8 +31,10 @@ def _bootstrap() -> None:
 
     django.setup()
     from core.bootstrap import ensure_bootstrap_state
+    from core.schedules import ensure_default_schedules
 
     ensure_bootstrap_state()
+    ensure_default_schedules()
 
 
 def main() -> None:

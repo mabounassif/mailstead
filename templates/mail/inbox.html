@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><title>{{ folder }} — Mailstead</title></head>
+<body>
+  <nav>
+    <a href="{% url 'mail_inbox' %}">Inbox</a>
+    <a href="{% url 'mail_folder' 'sent' %}">Sent</a>
+    <a href="{% url 'mail_folder' 'drafts' %}">Drafts</a>
+    <a href="{% url 'mail_folder' 'archive' %}">Archive</a>
+    <a href="{% url 'mail_folder' 'junk' %}">Junk</a>
+    <a href="{% url 'mail_folder' 'trash' %}">Trash</a>
+    <a href="{% url 'mail_compose' %}">Compose</a>
+    <a href="{% url 'mail_search' %}">Search</a>
+  </nav>
+  {% if storage_placeholder %}<p><em>Storage usage (configured in M3)</em></p>{% endif %}
+  <h1>{{ folder }}</h1>
+  <ul>
+    {% for copy in page %}
+      <li>
+        <a href="{% url 'mail_message' copy.id %}">{{ copy.message.subject|default:"(no subject)" }}</a>
+        — {{ copy.message.from_address }}
+      </li>
+    {% empty %}
+      <li>No messages.</li>
+    {% endfor %}
+  </ul>
+</body>
+</html>

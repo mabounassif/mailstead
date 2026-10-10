@@ -13,6 +13,8 @@ COPY mailstead ./mailstead
 COPY core ./core
 COPY accounts ./accounts
 COPY jobs ./jobs
+COPY mail ./mail
+COPY provider ./provider
 COPY templates ./templates
 
 RUN pip install --upgrade pip && pip install .

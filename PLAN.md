@@ -216,10 +216,11 @@ Each milestone ends with: tests green on SQLite (and Postgres where available), 
 - [x] Spec read; Resend and Railway docs verified (2026-10-10)
 - [x] Five-milestone plan written (this file)
 - [x] M1 Foundation, deployment skeleton, users, admin, bootstrap (2026-10-10)
-- [ ] M2 Durable sending/receiving, retention, mailbox UI
+- [x] M2 Durable sending/receiving, retention, mailbox UI (2026-10-10)
 - [ ] M3 Storage enforcement and ops dashboard
 - [ ] M4 Resend usage, subscription labelling, alerts
 - [ ] M5 Enterprise client/mock, final verification, template docs
 
 Completed checks:
 - **M1 (2026-10-10):** `pytest` — 10 passed, 1 skipped (Postgres marker; run with `DATABASE_URL=postgres://...`). Covers bootstrap one-time/consumed/redeploy, health/readiness, password reset to recovery email, rate limit, session invalidation, registration disabled, disabled mailbox login. Handoff: run `python -m mailstead.run` or `docker compose up`; open `/setup/<BOOTSTRAP_TOKEN>` once; worker heartbeat required for `/readyz` unless `SKIP_WORKER_HEARTBEAT_CHECK=1`.
+- **M2 (2026-10-10):** `pytest` — 30 passed, 1 skipped. Job queue with schedules, Resend webhook + inbound/outbound pipeline, reconcile/import command, mailbox UI (folders/search/compose/export), filtering/junk, HTML sanitizer. Handoff: set `RESEND_WEBHOOK_SECRET` or run `register_webhook` schedule after deploy; `manage.py import_received` for history.

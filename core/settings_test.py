@@ -13,6 +13,7 @@ _DEFAULTS = {
     "SKIP_WORKER_HEARTBEAT_CHECK": "1",
     "PUBLIC_URL": "http://testserver",
     "DATA_ROOT": "/tmp/mailstead-test-data",
+    "RESEND_WEBHOOK_SECRET": "whsec_test",
 }
 for key, value in _DEFAULTS.items():
     os.environ.setdefault(key, value)
