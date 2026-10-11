@@ -1,15 +1,19 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>Initial setup — Mailstead</title>
-</head>
-<body>
-  <h1>Create administrator</h1>
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Create account</button>
-  </form>
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}Initial setup — Mailstead{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+{% block header %}
+<span class="app-brand">Mailstead setup</span>
+{% endblock %}
+{% block body %}
+<main class="app-main">
+  <div class="auth-card card">
+    <h1>Create administrator</h1>
+    <p class="auth-lede">This one-time step creates the first admin account for this instance.</p>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit" class="btn btn-primary btn-block">Create account</button>
+    </form>
+  </div>
+</main>
+{% endblock %}

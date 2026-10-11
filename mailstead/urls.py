@@ -12,7 +12,7 @@ from provider.webhooks import resend_webhook
 def home(request: HttpRequest) -> HttpResponse:
     if request.user.is_authenticated:
         return redirect(reverse("mail_inbox"))
-    return HttpResponse("Mailstead", content_type="text/plain")
+    return redirect(reverse("login"))
 
 
 urlpatterns = [

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="mail-shell">
+  {% include "partials/mail_nav.html" %}
+  <main class="mail-content">
+    {% if messages %}
+    <ul class="messages">
+      {% for message in messages %}
+      <li class="{{ message.tags }}">{{ message }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    {% block mail_content %}{% endblock %}
+  </main>
+</div>
+<script>
+(function () {
+  var btn = document.getElementById("mail-nav-toggle");
+  var sidebar = document.getElementById("mail-sidebar");
+  if (!btn || !sidebar) return;
+  btn.addEventListener("click", function () {
+    var open = sidebar.classList.toggle("is-open");
+    btn.setAttribute("aria-expanded", open ? "true" : "false");
+  });
+})();
+</script>
+{% endblock %}

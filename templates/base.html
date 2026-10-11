@@ -1,0 +1,39 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Mailstead{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'mailstead/app.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+  <header class="app-header">
+    {% block header %}
+    {% if user.is_authenticated %}
+    <button type="button" class="nav-toggle" id="mail-nav-toggle" aria-expanded="false" aria-controls="mail-sidebar" aria-label="Toggle folders">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+    </button>
+    {% endif %}
+    <a class="app-brand" href="{% if user.is_authenticated %}{% url 'mail_inbox' %}{% else %}{% url 'login' %}{% endif %}">
+      Mailstead{% if mail_domain %}<span class="app-brand-sub"> · {{ mail_domain }}</span>{% endif %}
+    </a>
+    <span class="app-header-spacer"></span>
+    <div class="app-header-actions">
+      {% if user.is_authenticated %}
+        {% if user.is_staff %}
+          <a href="{% url 'ops_dashboard' %}">Ops</a>
+        {% endif %}
+        <span class="user-label">{{ user.get_username }}</span>
+        <a href="{% url 'logout' %}">Sign out</a>
+      {% endif %}
+    </div>
+    {% endblock %}
+  </header>
+  {% block body %}{% endblock %}
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

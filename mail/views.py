@@ -46,7 +46,7 @@ def inbox(request: HttpRequest) -> HttpResponse:
     return render(
         request,
         "mail/inbox.html",
-        {"page": page, "folder": Folder.INBOX, "storage_placeholder": True},
+        {"page": page, "folder": Folder.INBOX, "active_nav": Folder.INBOX},
     )
 
 
@@ -58,7 +58,7 @@ def folder_view(request: HttpRequest, folder: str) -> HttpResponse:
     qs = MessageCopy.objects.filter(mailbox=mailbox, folder=folder).select_related("message")
     paginator = Paginator(qs, 25)
     page = paginator.get_page(request.GET.get("page"))
-    return render(request, "mail/inbox.html", {"page": page, "folder": folder, "storage_placeholder": True})
+    return render(request, "mail/inbox.html", {"page": page, "folder": folder, "active_nav": folder})
 
 
 @login_required
@@ -90,6 +90,7 @@ def message_detail(request: HttpRequest, copy_id: int) -> HttpResponse:
             "html_body": html_body,
             "bcc_for_view": copy.bcc_snapshot,
             "attachments": msg.attachments.all(),
+            "active_nav": copy.folder,
         },
     )
 
@@ -108,7 +109,7 @@ def search(request: HttpRequest) -> HttpResponse:
         )
     paginator = Paginator(qs, 25)
     page = paginator.get_page(request.GET.get("page"))
-    return render(request, "mail/search.html", {"page": page, "q": q})
+    return render(request, "mail/search.html", {"page": page, "q": q, "active_nav": "search"})
 
 
 @login_required
@@ -129,7 +130,7 @@ def compose(request: HttpRequest) -> HttpResponse:
             return redirect("mail_folder", folder="sent")
         except Exception as exc:
             messages.error(request, str(exc))
-    return render(request, "mail/compose.html", {"mailbox": mailbox})
+    return render(request, "mail/compose.html", {"mailbox": mailbox, "active_nav": "compose"})
 
 
 @login_required
@@ -148,7 +149,11 @@ def reply(request: HttpRequest, copy_id: int) -> HttpResponse:
             references=msg.message_id,
         )
         return redirect("mail_message", copy_id=copy.id)
-    return render(request, "mail/compose.html", {"mailbox": mailbox, "prefill": f"Re: {msg.subject}"})
+    return render(
+        request,
+        "mail/compose.html",
+        {"mailbox": mailbox, "prefill": f"Re: {msg.subject}", "active_nav": "compose"},
+    )
 
 
 @login_required
@@ -169,7 +174,7 @@ def reply_all(request: HttpRequest, copy_id: int) -> HttpResponse:
             references=copy.message.message_id,
         )
         return redirect("mail_message", copy_id=copy.id)
-    return render(request, "mail/compose.html", {"mailbox": mailbox})
+    return render(request, "mail/compose.html", {"mailbox": mailbox, "active_nav": "compose"})
 
 
 @login_required
