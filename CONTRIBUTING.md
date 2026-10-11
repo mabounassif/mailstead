@@ -27,4 +27,4 @@ DATABASE_URL=postgres://mailstead:mailstead@localhost:5432/mailstead pytest -m p
 
 ## Documentation
 
-Deployment and operations live under [docs/](docs/). Update them when you change env vars, health checks, or Railway template steps.
+Deployment and operations live under [docs/](docs/). Update [ROADMAP.md](ROADMAP.md) when priorities shift. Update docs when you change env vars, health checks, or Railway template steps.

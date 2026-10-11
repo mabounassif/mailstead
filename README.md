@@ -56,9 +56,9 @@ docker compose up --build
 
 Copy [`.env.example`](.env.example) for all configuration knobs.
 
-## Project status
+## Roadmap
 
-Core milestones (mailbox, jobs, webhooks, storage, enterprise hooks) are implemented. See [PLAN.md](PLAN.md) for architecture notes and milestone history.
+What is done and what is planned: [ROADMAP.md](ROADMAP.md).
 
 ## Contributing
 

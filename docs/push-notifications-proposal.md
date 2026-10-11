@@ -61,7 +61,7 @@ For **iPhone users**, Web Push is available **only after “Add to Home Screen�
 |-----------------|---------|--------|
 | `WebhookEvent` | Yes | Resend webhook audit, not user notifications |
 | `UsageAlert` | Yes | Deduped threshold records — `provider/usage_service.py` |
-| Usage alert **email** / in-app notice UI | **Partial / gap** | `PLAN.md` describes admin email + in-app notices; code only **creates `UsageAlert` rows** — no mail send on alert, minimal `/ops/resend-usage/` page |
+| Usage alert **email** / in-app notice UI | **Partial / gap** | [ROADMAP.md](../ROADMAP.md) lists admin email + in-app notices; code only **creates `UsageAlert` rows** — no mail send on alert, minimal `/ops/resend-usage/` page |
 | User notification preferences | **No** | No per-user opt-in, preview mode, or device list |
 | Push subscriptions | **No** | — |
 
@@ -433,7 +433,7 @@ Never put message body, attachments, or tokens in push payload.
 |------|------------------------|
 | iOS version mix | Target **16.4+** with SW; treat **18.4+** declarative as enhancement |
 | pywebpush + declarative | Assumed JSON body passes through unchanged; verify on first iPhone test |
-| Usage alert email | `PLAN.md` describes admin email on usage alerts — **not implemented**; ops push may duplicate future email work |
+| Usage alert email | [ROADMAP.md](../ROADMAP.md) — **not implemented**; ops push may duplicate future email work |
 | Unread badge accuracy | Badge set at send time; may be stale if user reads on another device — acceptable for v1 |
 | Quiet hours | Model sketched; implement in M3 if requested |
 | Postgres vs SQLite | Push tables fine on both; same worker |
