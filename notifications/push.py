@@ -20,8 +20,33 @@ ALLOWED_PUSH_HOST_SUFFIXES = (
 )
 
 
-def push_configured() -> bool:
+def load_vapid_private_key():
+    """Parse VAPID private key from settings (PEM, DER base64url, or 32-byte raw)."""
+    from py_vapid import Vapid, Vapid01
+
+    raw = (getattr(settings, "VAPID_PRIVATE_KEY", "") or "").strip()
+    if not raw:
+        return None
+    if "BEGIN" in raw:
+        pem = raw.replace("\\n", "\n")
+        try:
+            return Vapid01.from_pem(pem.encode("utf-8"))
+        except Exception as exc:
+            logger.warning("Invalid VAPID_PRIVATE_KEY (PEM): %s", exc)
+            return None
+    try:
+        return Vapid.from_string(raw)
+    except Exception as exc:
+        logger.warning("Invalid VAPID_PRIVATE_KEY: %s", exc)
+        return None
+
+
+def push_keys_present() -> bool:
     return bool(getattr(settings, "VAPID_PRIVATE_KEY", "") and getattr(settings, "VAPID_PUBLIC_KEY", ""))
+
+
+def push_configured() -> bool:
+    return push_keys_present() and load_vapid_private_key() is not None
 
 
 def endpoint_allowed(endpoint: str) -> bool:
@@ -66,10 +91,14 @@ def send_push(subscription_info: dict, payload: dict) -> None:
     if not push_configured():
         raise RuntimeError("VAPID keys not configured")
 
+    vapid_key = load_vapid_private_key()
+    if vapid_key is None:
+        raise RuntimeError("VAPID keys not configured")
+
     webpush(
         subscription_info,
         json.dumps(payload),
-        vapid_private_key=settings.VAPID_PRIVATE_KEY,
+        vapid_private_key=vapid_key,
         vapid_claims=vapid_claims(),
         timeout=10,
     )
@@ -81,11 +110,14 @@ def send_push_safe(subscription_info: dict, payload: dict) -> tuple[bool, str | 
 
     if not push_configured():
         return False, "not_configured", None
+    vapid_key = load_vapid_private_key()
+    if vapid_key is None:
+        return False, "not_configured", None
     try:
         webpush(
             subscription_info,
             json.dumps(payload),
-            vapid_private_key=settings.VAPID_PRIVATE_KEY,
+            vapid_private_key=vapid_key,
             vapid_claims=vapid_claims(),
             timeout=10,
         )
