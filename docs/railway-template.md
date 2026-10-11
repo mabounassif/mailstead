@@ -34,7 +34,7 @@ All template variables must have a **description** in the composer. Defaults and
 
 ## Branding
 
-- **Template card + service icon:** 512×512 PNG with transparent background — replace `core/static/mailstead/icon-source.jpg`, then `python scripts/render_app_icons.py` (requires Pillow).
+- **Template card + service icon:** replace `core/static/mailstead/icon-source.jpg`, then `python scripts/render_app_icons.py` (requires Pillow).
 - **Screenshots** for the marketplace readme: `python scripts/seed_demo_screenshots.py` then `python scripts/capture_template_screenshots.py` (requires `playwright`; dev server on port 18765).
 
 ## Maintainer sync
