@@ -74,12 +74,16 @@ def main() -> None:
         "-",
         "--error-logfile",
         "-",
+        "--no-control-socket",
     ]
     worker_cmd = [sys.executable, "manage.py", "worker"]
+    child_env = os.environ.copy()
+    if not child_env.get("HOME") or child_env.get("HOME") == "/root":
+        child_env["HOME"] = "/tmp"
 
     children: dict[str, subprocess.Popen] = {}
-    children["gunicorn"] = subprocess.Popen(gunicorn_cmd)
-    children["worker"] = subprocess.Popen(worker_cmd)
+    children["gunicorn"] = subprocess.Popen(gunicorn_cmd, env=child_env)
+    children["worker"] = subprocess.Popen(worker_cmd, env=child_env)
 
     shutting_down = False
 

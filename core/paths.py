@@ -23,6 +23,7 @@ def prepare_data_volume(run_as_user: str = "mailstead") -> None:
         path = root / sub
         path.mkdir(parents=True, exist_ok=True)
         os.chown(path, user.pw_uid, user.pw_gid)
+    os.environ["HOME"] = user.pw_dir
     os.setgid(user.pw_gid)
     os.setuid(user.pw_uid)
 

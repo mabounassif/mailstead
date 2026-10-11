@@ -21,6 +21,10 @@ COPY templates ./templates
 
 RUN pip install --upgrade pip && pip install .
 
+RUN SECRET_KEY=build-only DEBUG=1 RESEND_API_KEY=re_build MAIL_DOMAIN=build.invalid \
+    ADMIN_RECOVERY_EMAIL=build@invalid DJANGO_SETTINGS_MODULE=core.settings \
+    python manage.py collectstatic --noinput
+
 RUN mkdir -p /data && chown mailstead:mailstead /data
 
 # Start as root so mailstead.run can chown a freshly mounted volume, then drop privileges.
