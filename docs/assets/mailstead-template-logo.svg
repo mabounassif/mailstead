@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Mailstead">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1d4ed8"/>
+      <stop offset="100%" stop-color="#2563eb"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="96" fill="url(#bg)"/>
+  <path fill="#fff" d="M128 176c0-22.1 17.9-40 40-40h176c22.1 0 40 17.9 40 40v24L256 288 128 200v-24z"/>
+  <path fill="#dbeafe" d="M128 200l128 88 128-88v136c0 22.1-17.9 40-40 40H168c-22.1 0-40-17.9-40-40V200z"/>
+  <path fill="#fff" d="M220 148h72l36 40h-144l36-40z" opacity=".95"/>
+</svg>

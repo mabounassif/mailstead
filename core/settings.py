@@ -37,6 +37,15 @@ PUBLIC_URL = os.environ.get("PUBLIC_URL") or (
     f"https://{_railway_domain}" if _railway_domain else "http://localhost:8000"
 )
 
+_allowed_hosts = [h.strip() for h in os.environ.get("ALLOWED_HOSTS", "").split(",") if h.strip()]
+if _railway_domain and _railway_domain not in _allowed_hosts:
+    _allowed_hosts.append(_railway_domain)
+if DEBUG:
+    for host in ("localhost", "127.0.0.1", "[::1]"):
+        if host not in _allowed_hosts:
+            _allowed_hosts.append(host)
+ALLOWED_HOSTS = _allowed_hosts
+
 DATA_ROOT = data_root()
 ensure_dirs = DATA_ROOT  # noqa: F841 — documented mount
 
