@@ -6,7 +6,13 @@ from django.conf import settings
 
 from provider.crypto import encrypt
 from provider.models import ProviderSettings
-from provider.resend_client import ResendError, create_webhook, list_webhooks, resend_api_configured
+from provider.resend_client import (
+    ResendError,
+    create_webhook,
+    get_webhook,
+    list_webhooks,
+    resend_api_configured,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +50,12 @@ def ensure_webhook_registered() -> ProviderSettings:
         if hook.get("endpoint") == endpoint:
             row.webhook_id = hook.get("id") or ""
             secret = hook.get("signing_secret") or ""
+            if not secret and row.webhook_id:
+                try:
+                    detail = get_webhook(row.webhook_id)
+                    secret = detail.get("signing_secret") or ""
+                except ResendError as exc:
+                    logger.warning("Could not fetch webhook signing secret: %s", exc)
             if secret:
                 row.webhook_secret_encrypted = encrypt(secret)
             row.webhook_disabled = hook.get("disabled", False)

@@ -175,6 +175,20 @@ def list_webhooks() -> dict[str, Any]:
         raise _parse_resend_exception(exc) from exc
 
 
+def get_webhook(webhook_id: str) -> dict[str, Any]:
+    import resend
+
+    resend.api_key = settings.RESEND_API_KEY
+    _wait_rate_limit()
+    try:
+        response = resend.Webhooks.get(webhook_id)
+        if hasattr(response, "model_dump"):
+            return response.model_dump()
+        return dict(response)
+    except Exception as exc:
+        raise _parse_resend_exception(exc) from exc
+
+
 def create_webhook(endpoint: str, events: list[str]) -> dict[str, Any]:
     import resend
 
@@ -208,4 +222,14 @@ def get_usage() -> dict[str, Any]:
 def verify_webhook(payload: bytes, headers: dict[str, str], secret: str) -> None:
     import resend
 
-    resend.Webhooks.verify(payload, headers, secret)
+    resend.Webhooks.verify(
+        {
+            "payload": payload.decode("utf-8"),
+            "headers": {
+                "id": headers.get("svix-id", ""),
+                "timestamp": headers.get("svix-timestamp", ""),
+                "signature": headers.get("svix-signature", ""),
+            },
+            "webhook_secret": secret,
+        }
+    )

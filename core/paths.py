@@ -7,6 +7,15 @@ def data_root() -> Path:
     return Path(os.environ.get("DATA_ROOT", "/data"))
 
 
+def _chown_tree(path: Path, uid: int, gid: int) -> None:
+    os.chown(path, uid, gid)
+    for dirpath, dirnames, filenames in os.walk(path):
+        for name in dirnames:
+            os.chown(os.path.join(dirpath, name), uid, gid)
+        for name in filenames:
+            os.chown(os.path.join(dirpath, name), uid, gid)
+
+
 def prepare_data_volume(run_as_user: str = "mailstead") -> None:
     """Ensure DATA_ROOT is writable (Railway/bind mounts are often root-owned).
 
@@ -22,7 +31,7 @@ def prepare_data_volume(run_as_user: str = "mailstead") -> None:
     for sub in ("db", "mail", "tmp"):
         path = root / sub
         path.mkdir(parents=True, exist_ok=True)
-        os.chown(path, user.pw_uid, user.pw_gid)
+        _chown_tree(path, user.pw_uid, user.pw_gid)
     os.environ["HOME"] = user.pw_dir
     os.setgid(user.pw_gid)
     os.setuid(user.pw_uid)

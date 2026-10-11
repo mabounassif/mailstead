@@ -26,8 +26,8 @@ def resend_webhook(request: HttpRequest) -> HttpResponse:
     if len(request.body) > MAX_WEBHOOK_BYTES:
         return HttpResponse(status=413)
     settings_row = ProviderSettings.objects.first()
-    secret = settings.RESEND_WEBHOOK_SECRET
-    if settings_row and settings_row.webhook_secret_encrypted:
+    secret = (settings.RESEND_WEBHOOK_SECRET or "").strip()
+    if not secret and settings_row and settings_row.webhook_secret_encrypted:
         secret = decrypt(settings_row.webhook_secret_encrypted)
     if not secret:
         return HttpResponse("webhook not configured", status=400)
