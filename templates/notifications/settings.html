@@ -5,7 +5,9 @@
 {% block mail_content %}
   <h1 class="page-title">Notifications</h1>
 
-  {% if not push_configured %}
+  {% if push_keys_invalid %}
+  <p class="form-hint">Push keys are set but invalid. Regenerate a matched pair with <code>uv run vapid --gen</code>, then set <code>VAPID_PRIVATE_KEY</code> (PEM) and <code>VAPID_PUBLIC_KEY</code> (<code>vapid --applicationServerKey -k private_key.pem</code>) on the server.</p>
+  {% elif not push_configured %}
   <p class="form-hint">Push is not configured on this server (missing VAPID keys).</p>
   {% else %}
 

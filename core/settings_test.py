@@ -14,8 +14,12 @@ _DEFAULTS = {
     "PUBLIC_URL": "http://testserver",
     "DATA_ROOT": "/tmp/mailstead-test-data",
     "RESEND_WEBHOOK_SECRET": "whsec_test",
-    "VAPID_PUBLIC_KEY": "BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U",
-    "VAPID_PRIVATE_KEY": "UUxI4O8-FbRWD_A7SWv7KwJlwn_-jJasAJB0DXwUgj1E",
+    "VAPID_PUBLIC_KEY": "BBCcCWavxjfIyW6NRhqclO9IZj9oW1gFKUBSgwcigfNcpXSfRk5JQTOcahMLjzO1bkHMoiw4b6L7YTyF8foLEEU",
+    "VAPID_PRIVATE_KEY": (
+        "MHcCAQEEIPeN1iAipHbt8+/KZ2NIF8NeN24jqAmnMLFZEMocY8RboAoGCCqGSM49"
+        "AwEHoUQDQgAEEJwJZq/GN8jJbo1GGpyU70hmP2hbWAUpQFKDByKB81yldJ9GTklB"
+        "M5xqEwuPM7VuQcyiLDhvovthPIXx+gsQRQ=="
+    ),
 }
 for key, value in _DEFAULTS.items():
     os.environ.setdefault(key, value)

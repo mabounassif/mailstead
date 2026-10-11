@@ -10,7 +10,7 @@ from accounts.models import Mailbox
 from jobs.models import Job
 from mail.models import Folder, Message, MessageCopy
 from notifications.models import PushSubscription
-from notifications.push import build_declarative_payload, endpoint_allowed
+from notifications.push import build_declarative_payload, endpoint_allowed, load_vapid_private_key, push_configured
 from notifications.scheduling import pop_pending_copy_ids, schedule_new_mail_push
 from notifications.services import build_new_mail_payload
 
@@ -26,6 +26,11 @@ from notifications.services import build_new_mail_payload
 )
 def test_endpoint_allowlist(endpoint, ok):
     assert endpoint_allowed(endpoint) is ok
+
+
+def test_vapid_keys_load_for_tests():
+    assert load_vapid_private_key() is not None
+    assert push_configured() is True
 
 
 def test_declarative_payload_shape():

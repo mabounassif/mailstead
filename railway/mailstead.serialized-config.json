@@ -69,9 +69,8 @@
           "description": "Optional Web Push VAPID public key (base64url). Generate with py-vapid; pair with VAPID_PRIVATE_KEY."
         },
         "VAPID_PRIVATE_KEY": {
-          "defaultValue": "${{secret(32)}}",
           "isOptional": true,
-          "description": "Optional Web Push VAPID private key. Auto-generated if omitted; required with VAPID_PUBLIC_KEY for push."
+          "description": "Optional Web Push VAPID private key (PEM or DER base64url from `vapid --gen`). Must be a matched pair with VAPID_PUBLIC_KEY; do not use a random secret."
         },
         "PUSH_DEBOUNCE_SECONDS": {
           "defaultValue": "45",

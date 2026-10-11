@@ -10,7 +10,7 @@ from django.views.decorators.cache import cache_control
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from notifications.models import NotificationPreference, PushSubscription
-from notifications.push import endpoint_allowed, push_configured
+from notifications.push import endpoint_allowed, push_configured, push_keys_present
 from notifications.services import prefs_for_user, send_test_notification
 
 
@@ -97,6 +97,7 @@ def settings_page(request: HttpRequest) -> HttpResponse:
             "preview_mode_choices": NotificationPreference.PreviewMode.choices,
             "devices": devices,
             "push_configured": push_configured(),
+            "push_keys_invalid": push_keys_present() and not push_configured(),
             "vapid_public_key": settings.VAPID_PUBLIC_KEY,
             "active_nav": "notifications",
         },
