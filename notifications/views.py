@@ -26,20 +26,20 @@ def web_manifest(request: HttpRequest) -> JsonResponse:
             "start_url": base + "/mail/",
             "scope": base + "/",
             "display": "standalone",
-            "background_color": "#f4f6f9",
+            "background_color": "#2563eb",
             "theme_color": "#2563eb",
             "icons": [
                 {
                     "src": base + "/static/mailstead/icon-512.png",
                     "sizes": "512x512",
                     "type": "image/png",
-                    "purpose": "any",
+                    "purpose": "any maskable",
                 },
                 {
                     "src": base + "/static/mailstead/icon-192.png",
                     "sizes": "192x192",
                     "type": "image/png",
-                    "purpose": "any",
+                    "purpose": "any maskable",
                 },
                 {
                     "src": base + "/static/mailstead/icon.svg",

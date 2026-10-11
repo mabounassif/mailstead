@@ -17,7 +17,7 @@ Railway Config as Code (`railway.json`) is deprecated for new projects. Configur
   - `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` (optional `${{secret(...)}}` — Web Push / iPhone Home Screen notifications; generate with `py-vapid`)
   - `PUSH_DEBOUNCE_SECONDS` (optional, default `45`)
 
-**Template branding:** use `docs/assets/mailstead-template-logo.svg` (same artwork as in-app / Home Screen icons in `core/static/mailstead/`).
+**Template branding:** use `docs/assets/mailstead-template-logo.jpg` (same file as `core/static/mailstead/icon-source.jpg`). Regenerate PNG sizes after replacing that JPEG: `python scripts/render_app_icons.py`.
 
 **Published template:** [Deploy Mailstead](https://railway.com/deploy/mailstead) (code `mailstead`). Also listed under [Workspace → Templates](https://railway.com/workspace/templates).
 

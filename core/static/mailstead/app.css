@@ -81,8 +81,7 @@ img {
   flex: 0 0 auto;
   width: 2rem;
   height: 2rem;
-  border-radius: 0.45rem;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
+  border-radius: 0.5rem;
 }
 
 .app-brand-text {
@@ -684,4 +683,26 @@ dl.stats dd {
   align-items: center;
   gap: 0.5rem;
   margin-bottom: 0.65rem;
+}
+
+.btn-sm {
+  font-size: 0.85rem;
+  padding: 0.25rem 0.55rem;
+}
+
+.notify-install-preview {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.notify-install-icon {
+  flex: 0 0 auto;
+  border-radius: 1rem;
+  box-shadow: var(--shadow);
+}
+
+.notify-install-preview .form-hint {
+  margin: 0;
 }
