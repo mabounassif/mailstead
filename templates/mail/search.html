@@ -1,0 +1,21 @@
+{% extends "mail/base_mail.html" %}
+{% block title %}Search — Mailstead{% endblock %}
+{% block mail_content %}
+<h1 class="page-title">Search</h1>
+<form class="search-bar" method="get" role="search">
+  <input name="q" value="{{ q }}" placeholder="Subject, sender, or body…" aria-label="Search mail">
+  <button type="submit" class="btn btn-primary">Search</button>
+</form>
+<ul class="message-list">
+  {% for copy in page %}
+  <li>
+    <a href="{% url 'mail_message' copy.id %}">
+      <div class="msg-subject">{{ copy.message.subject|default:"(no subject)" }}</div>
+      <div class="msg-meta">{{ copy.message.from_address }}</div>
+    </a>
+  </li>
+  {% empty %}
+  <li><p class="empty-state" style="margin:0;border:none;">No matching messages.</p></li>
+  {% endfor %}
+</ul>
+{% endblock %}

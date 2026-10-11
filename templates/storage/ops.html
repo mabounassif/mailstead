@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}Operations — Mailstead{% endblock %}
+{% block body_class %}ops-page{% endblock %}
+{% block body %}
+<div class="mail-shell">
+  <main class="mail-content ops-standalone">
+    <nav class="toolbar" aria-label="Operations">
+      <a href="{% url 'mail_inbox' %}">Mail</a>
+      <a href="{% url 'usage_panel' %}">Resend usage</a>
+      <a href="/admin/">Admin</a>
+    </nav>
+
+    <h1 class="page-title">Operations</h1>
+    <p class="lede">Storage, workers, and provider health for this Mailstead instance.</p>
+
+    <section>
+      <h2>Disk space</h2>
+      <p><span class="pill">{{ physical_source }}</span></p>
+      <dl class="stats">
+        <dt>Total</dt>
+        <dd>{{ physical.total_bytes|filesizeformat }}</dd>
+        <dt>Used</dt>
+        <dd>
+          {{ physical.used_bytes|filesizeformat }}
+          {% if disk_used_percent is not None %} ({{ disk_used_percent }}%){% endif %}
+          {% if disk_used_percent is not None %}
+          <div class="bar-wrap" aria-hidden="true"><div class="bar{% if disk_used_percent >= 90 %} danger{% elif disk_used_percent >= 80 %} warn{% endif %}" style="width: {{ disk_used_percent }}%"></div></div>
+          {% endif %}
+        </dd>
+        <dt>Free</dt>
+        <dd>{{ physical.free_bytes|filesizeformat }}</dd>
+        <dt>Reserved for DB &amp; temp</dt>
+        <dd>{{ disk_reserve_bytes|filesizeformat }}</dd>
+      </dl>
+    </section>
+
+    <section>
+      <h2>Email storage budget</h2>
+      <p class="lede">Logical mail blob budget (not the same as raw disk free space).</p>
+      <dl class="stats">
+        <dt>Budget</dt>
+        <dd>{{ email_budget_bytes|filesizeformat }}</dd>
+        <dt>Consumed</dt>
+        <dd>{{ ledger.email_consumed_bytes|filesizeformat }}</dd>
+        <dt>Reserved (in flight)</dt>
+        <dd>{{ ledger.reserved_bytes|filesizeformat }}</dd>
+        <dt>Overflow buffer</dt>
+        <dd>{{ ledger.overflow_bytes|filesizeformat }}</dd>
+        <dt>Allocated total</dt>
+        <dd>
+          {{ email_budget_used_bytes|filesizeformat }}
+          {% if email_budget_percent is not None %} ({{ email_budget_percent }}% of budget){% endif %}
+          {% if email_budget_percent is not None %}
+          <div class="bar-wrap" aria-hidden="true"><div class="bar{% if email_budget_percent >= 90 %} danger{% elif email_budget_percent >= 80 %} warn{% endif %}" style="width: {{ email_budget_percent }}%"></div></div>
+          {% endif %}
+        </dd>
+        <dt>Can still write</dt>
+        <dd><strong>{{ effective_capacity|filesizeformat }}</strong> (minimum of budget headroom and disk headroom)</dd>
+        {% if ledger.last_reconciled_at %}
+        <dt>Last reconciliation</dt>
+        <dd>{{ ledger.last_reconciled_at|date:"M j, Y, P" }} UTC</dd>
+        {% endif %}
+      </dl>
+    </section>
+
+    <section>
+      <h2>Mailboxes</h2>
+      {% if mailbox_rows %}
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Address</th>
+            <th>Used</th>
+            <th>Quota</th>
+            <th>Usage</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in mailbox_rows %}
+          <tr>
+            <td>{{ row.address }}</td>
+            <td>{{ row.charged_bytes|filesizeformat }}</td>
+            <td>{{ row.quota_bytes|filesizeformat }}</td>
+            <td>
+              {{ row.percent }}%
+              <div class="bar-wrap" aria-hidden="true"><div class="bar{% if row.percent >= 100 %} danger{% elif row.percent >= 90 %} warn{% endif %}" style="width: {% if row.percent > 100 %}100{% else %}{{ row.percent }}{% endif %}%"></div></div>
+            </td>
+            <td><span class="pill {{ row.state_code }}">{{ row.state }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p class="lede">No mailbox storage records yet. Mail arrives after a mailbox exists and messages are stored.</p>
+      {% endif %}
+      <p>Overflow queue: <strong>{{ overflow_count }}</strong> item{{ overflow_count|pluralize }}</p>
+    </section>
+
+    <section>
+      <h2>Background jobs</h2>
+      <dl class="stats">
+        <dt>Queued</dt>
+        <dd>{{ queued_jobs }}</dd>
+        <dt>Running</dt>
+        <dd>{{ running_jobs }}</dd>
+        <dt>Dead (failed)</dt>
+        <dd>{% if dead_jobs %}<span class="status-bad">{{ dead_jobs }}</span>{% else %}<span class="status-ok">0</span>{% endif %}</dd>
+      </dl>
+    </section>
+
+    <section>
+      <h2>Worker</h2>
+      <p>
+        <strong class="{% if worker.status == 'ok' %}status-ok{% elif worker.status == 'missing' %}status-bad{% else %}status-warn{% endif %}">{{ worker.label }}</strong>
+        — {{ worker.detail }}
+      </p>
+      {% if worker.updated_at %}
+      <p class="lede">Last heartbeat: {{ worker.updated_at|date:"M j, Y, P" }} UTC</p>
+      {% endif %}
+    </section>
+
+    <section>
+      <h2>Resend webhook</h2>
+      <p><strong>{{ webhook.label }}</strong> — {{ webhook.detail }}</p>
+    </section>
+  </main>
+</div>
+{% endblock %}

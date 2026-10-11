@@ -1,0 +1,80 @@
+{% extends "mail/base_mail.html" %}
+{% load static %}
+{% block title %}Notifications · Mailstead{% endblock %}
+{% block extra_head %}{% endblock %}
+{% block mail_content %}
+  <h1 class="page-title">Notifications</h1>
+
+  {% if not push_configured %}
+  <p class="form-hint">Push is not configured on this server (missing VAPID keys).</p>
+  {% else %}
+
+  <section class="notify-section">
+    <h2>iPhone / Home Screen</h2>
+    <div class="notify-install-preview">
+      <img src="{% static 'mailstead/icon-180.png' %}" width="72" height="72" alt="" class="notify-install-icon">
+      <p class="form-hint">Web push on iPhone works only after you add Mailstead to your Home Screen and open it from that icon—not from a Safari tab.</p>
+    </div>
+    <ol class="notify-steps">
+      <li>In Safari, tap Share → <strong>Add to Home Screen</strong>.</li>
+      <li>Open Mailstead from the new icon.</li>
+      <li>Sign in, return here, and tap <strong>Enable on this device</strong>.</li>
+    </ol>
+    <p id="push-status" class="form-hint" aria-live="polite"></p>
+    <button type="button" class="btn btn-primary" id="push-enable-btn" data-vapid-public="{{ vapid_public_key }}">
+      Enable on this device
+    </button>
+    <form method="post" action="{% url 'notifications_test' %}" class="inline-form">
+      {% csrf_token %}
+      <button type="submit" class="btn">Send test notification</button>
+    </form>
+  </section>
+
+  <section class="notify-section">
+    <h2>Preferences</h2>
+    <form method="post" action="{% url 'notifications_preferences' %}">
+      {% csrf_token %}
+      <label class="checkbox-row">
+        <input type="checkbox" name="enabled"{% if pref.enabled %} checked{% endif %}>
+        Notifications enabled
+      </label>
+      <label class="checkbox-row">
+        <input type="checkbox" name="new_mail"{% if pref.new_mail %} checked{% endif %}>
+        New mail in Inbox
+      </label>
+      <label class="field">
+        <span>Lock screen preview</span>
+        <select name="preview_mode">
+          {% for value, label in preview_mode_choices %}
+          <option value="{{ value }}"{% if pref.preview_mode == value %} selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <button type="submit" class="btn btn-primary">Save preferences</button>
+    </form>
+  </section>
+
+  <section class="notify-section">
+    <h2>This account’s devices</h2>
+    {% if devices %}
+    <ul class="device-list">
+      {% for d in devices %}
+      <li>
+        <span>{{ d.label|default:d.user_agent|truncatechars:48 }}</span>
+        <span class="muted">since {{ d.created_at|date:"M j, Y" }}</span>
+        <form method="post" action="{% url 'notifications_remove_device' d.pk %}" class="inline-form">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-sm">Remove</button>
+        </form>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="form-hint">No devices subscribed yet.</p>
+    {% endif %}
+  </section>
+  {% endif %}
+{% endblock %}
+{% block extra_scripts %}
+<script src="{% static 'mailstead/push.js' %}"></script>
+{% endblock %}

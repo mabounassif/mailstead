@@ -1,0 +1,13 @@
+<aside class="mail-sidebar" id="mail-sidebar">
+  <nav aria-label="Mail folders">
+    <a class="nav-compose{% if active_nav == 'compose' %} is-active{% endif %}" href="{% url 'mail_compose' %}">Compose</a>
+    <a href="{% url 'mail_inbox' %}"{% if active_nav == 'inbox' %} class="is-active"{% endif %}>Inbox</a>
+    <a href="{% url 'mail_folder' 'sent' %}"{% if active_nav == 'sent' %} class="is-active"{% endif %}>Sent</a>
+    <a href="{% url 'mail_folder' 'drafts' %}"{% if active_nav == 'drafts' %} class="is-active"{% endif %}>Drafts</a>
+    <a href="{% url 'mail_folder' 'archive' %}"{% if active_nav == 'archive' %} class="is-active"{% endif %}>Archive</a>
+    <a href="{% url 'mail_folder' 'junk' %}"{% if active_nav == 'junk' %} class="is-active"{% endif %}>Junk</a>
+    <a href="{% url 'mail_folder' 'trash' %}"{% if active_nav == 'trash' %} class="is-active"{% endif %}>Trash</a>
+    <a href="{% url 'mail_search' %}"{% if active_nav == 'search' %} class="is-active"{% endif %}>Search</a>
+    <a href="{% url 'notifications_settings' %}"{% if active_nav == 'notifications' %} class="is-active"{% endif %}>Notifications</a>
+  </nav>
+</aside>

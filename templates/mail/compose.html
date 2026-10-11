@@ -1,0 +1,27 @@
+{% extends "mail/base_mail.html" %}
+{% block title %}Compose — Mailstead{% endblock %}
+{% block mail_content %}
+<h1 class="page-title">Compose</h1>
+<div class="card">
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-field">
+      <label for="from">From</label>
+      <input id="from" name="from" value="{{ mailbox.address }}" autocomplete="email">
+    </div>
+    <div class="form-field">
+      <label for="to">To</label>
+      <input id="to" name="to" placeholder="name@example.com, …" autocomplete="off">
+    </div>
+    <div class="form-field">
+      <label for="subject">Subject</label>
+      <input id="subject" name="subject" value="{{ prefill|default:'' }}">
+    </div>
+    <div class="form-field">
+      <label for="body">Message</label>
+      <textarea id="body" name="body" rows="12"></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Send</button>
+  </form>
+</div>
+{% endblock %}

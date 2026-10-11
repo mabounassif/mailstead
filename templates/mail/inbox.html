@@ -1,0 +1,30 @@
+{% extends "mail/base_mail.html" %}
+{% block title %}{{ folder|title }} — Mailstead{% endblock %}
+{% block mail_content %}
+<h1 class="page-title">{{ folder|title }}</h1>
+{% if folder == 'trash' %}
+<form method="post" action="{% url 'mail_empty_trash' %}" style="margin-bottom:1rem;">
+  {% csrf_token %}
+  <button type="submit">Empty trash</button>
+</form>
+{% endif %}
+<ul class="message-list">
+  {% for copy in page %}
+  <li>
+    <a href="{% url 'mail_message' copy.id %}">
+      <div class="msg-subject">{{ copy.message.subject|default:"(no subject)" }}</div>
+      <div class="msg-meta">{{ copy.message.from_address }}</div>
+    </a>
+  </li>
+  {% empty %}
+  <li><p class="empty-state" style="margin:0;border:none;">No messages in this folder.</p></li>
+  {% endfor %}
+</ul>
+{% if page.has_other_pages %}
+<p style="margin-top:1rem;font-size:0.9rem;color:var(--muted);">
+  Page {{ page.number }} of {{ page.paginator.num_pages }}
+  {% if page.has_previous %} · <a href="?page={{ page.previous_page_number }}">Previous</a>{% endif %}
+  {% if page.has_next %} · <a href="?page={{ page.next_page_number }}">Next</a>{% endif %}
+</p>
+{% endif %}
+{% endblock %}

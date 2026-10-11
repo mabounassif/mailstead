@@ -1,0 +1,36 @@
+{% extends "mail/base_mail.html" %}
+{% block title %}{{ message.subject|default:"Message" }} — Mailstead{% endblock %}
+{% block mail_content %}
+<h1 class="page-title">{{ message.subject|default:"(no subject)" }}</h1>
+<p class="lede">From: {{ message.from_address }}</p>
+{% if bcc_for_view %}<p class="lede">BCC: {{ bcc_for_view }}</p>{% endif %}
+<div class="toolbar">
+  <a href="{% url 'mail_reply' copy.id %}">Reply</a>
+  <a href="{% url 'mail_reply_all' copy.id %}">Reply all</a>
+  <a href="{% url 'mail_export' copy.id %}">Export .eml</a>
+  {% if copy.folder == 'trash' %}
+  <a href="{% url 'mail_restore' copy.id %}">Restore</a>
+  <form method="post" action="{% url 'mail_purge' copy.id %}" style="display:inline;">
+    {% csrf_token %}
+    <button type="submit">Delete permanently</button>
+  </form>
+  {% else %}
+  <a href="{% url 'mail_trash' copy.id %}">Delete</a>
+  <a href="{% url 'mail_junk' copy.id %}">Junk</a>
+  <a href="{% url 'mail_not_junk' copy.id %}">Not junk</a>
+  {% endif %}
+</div>
+{% if attachments %}
+<ul style="margin:0 0 1rem 1.1rem;font-size:0.9rem;">
+  {% for att in attachments %}
+  <li>{{ att.filename }} ({{ att.size_bytes }} bytes)</li>
+  {% endfor %}
+</ul>
+{% endif %}
+{% if html_body %}
+<iframe class="message-frame" sandbox="" title="Message body" srcdoc="{{ html_body|escape }}"></iframe>
+<p style="margin-top:0.75rem;font-size:0.9rem;"><a href="?load_images=1">Load remote images</a></p>
+{% else %}
+<pre class="message-body-pre">{{ message.body_text_index }}</pre>
+{% endif %}
+{% endblock %}
