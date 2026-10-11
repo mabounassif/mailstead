@@ -1,56 +1,56 @@
 #!/usr/bin/env python3
-"""Resize icon-source.jpg into Home Screen PNG sizes (no redraw)."""
+"""Export app and Railway template icons from docs/assets/mailstead-brand.svg."""
 
 from __future__ import annotations
 
+import shutil
+import subprocess
 from pathlib import Path
 
-from PIL import Image
-
-ROOT = Path(__file__).resolve().parent.parent / "core" / "static" / "mailstead"
-DOC = Path(__file__).resolve().parent.parent / "docs" / "assets"
-SOURCE = ROOT / "icon-source.jpg"
+ROOT = Path(__file__).resolve().parent.parent
+STATIC = ROOT / "core" / "static" / "mailstead"
+DOC = ROOT / "docs" / "assets"
+BRAND_SVG = DOC / "mailstead-brand.svg"
 SIZES = (512, 192, 180)
-TEMPLATE_ICON = DOC / "mailstead-template-icon.png"
+INKSCAPE = shutil.which("inkscape")
 
 
-def _square(img: Image.Image) -> Image.Image:
-    img = img.convert("RGB")
-    w, h = img.size
-    if w == h:
-        return img
-    side = min(w, h)
-    left = (w - side) // 2
-    top = (h - side) // 2
-    return img.crop((left, top, left + side, top + side))
-
-
-def _transparent_template_icon(base: Image.Image, size: int = 512) -> Image.Image:
-    rgba = base.convert("RGBA")
-    pixels = rgba.load()
-    w, h = rgba.size
-    for y in range(h):
-        for x in range(w):
-            r, g, b, a = pixels[x, y]
-            if r > 240 and g > 240 and b > 240:
-                pixels[x, y] = (r, g, b, 0)
-            else:
-                pixels[x, y] = (r, g, b, 255)
-    return rgba.resize((size, size), Image.Resampling.LANCZOS)
+def _export_png(svg: Path, out: Path, size: int) -> None:
+    if not INKSCAPE:
+        raise SystemExit("inkscape is required to export PNG icons (install inkscape or use snap)")
+    out.parent.mkdir(parents=True, exist_ok=True)
+    subprocess.run(
+        [
+            INKSCAPE,
+            str(svg),
+            f"--export-filename={out}",
+            "-w",
+            str(size),
+            "-h",
+            str(size),
+        ],
+        check=True,
+    )
 
 
 def main() -> None:
-    if not SOURCE.is_file():
-        raise SystemExit(f"Missing {SOURCE} — add your logo as icon-source.jpg first.")
-    base = _square(Image.open(SOURCE))
-    base.save(SOURCE, quality=95)
-    base.save(DOC / "mailstead-template-logo.jpg", quality=95)
+    if not BRAND_SVG.is_file():
+        raise SystemExit(f"Missing {BRAND_SVG}")
     for size in SIZES:
-        out = ROOT / f"icon-{size}.png"
-        _square(base).resize((size, size), Image.Resampling.LANCZOS).save(out, optimize=True)
+        out = STATIC / f"icon-{size}.png"
+        _export_png(BRAND_SVG, out, size)
         print(f"wrote {out}")
-    _transparent_template_icon(base).save(TEMPLATE_ICON, optimize=True)
-    print(f"wrote {TEMPLATE_ICON}")
+    template_icon = DOC / "mailstead-template-icon.png"
+    _export_png(BRAND_SVG, template_icon, 512)
+    print(f"wrote {template_icon}")
+    # Legacy JPEG used by some docs; keep in sync for non-SVG consumers.
+    try:
+        from PIL import Image
+
+        Image.open(template_icon).convert("RGB").save(DOC / "mailstead-template-logo.jpg", quality=92)
+        Image.open(template_icon).convert("RGB").save(STATIC / "icon-source.jpg", quality=92)
+    except ImportError:
+        pass
 
 
 if __name__ == "__main__":
