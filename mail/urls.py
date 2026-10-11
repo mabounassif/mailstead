@@ -11,6 +11,10 @@ urlpatterns = [
     path("m/<int:copy_id>/reply-all/", views.reply_all, name="mail_reply_all"),
     path("m/<int:copy_id>/junk/", views.mark_junk, name="mail_junk"),
     path("m/<int:copy_id>/not-junk/", views.mark_not_junk, name="mail_not_junk"),
+    path("m/<int:copy_id>/trash/", views.trash_message, name="mail_trash"),
+    path("m/<int:copy_id>/purge/", views.purge_message, name="mail_purge"),
+    path("m/<int:copy_id>/restore/", views.restore_message, name="mail_restore"),
+    path("f/trash/empty/", views.empty_trash_view, name="mail_empty_trash"),
     path("m/<int:copy_id>/export/", views.export_eml, name="mail_export"),
     path(
         "m/<int:copy_id>/att/<int:attachment_id>/",

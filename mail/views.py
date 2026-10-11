@@ -9,7 +9,10 @@ from django.db import models
 from django.http import FileResponse, Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
+from django.views.decorators.http import require_POST
+
 from mail.compose import reply_all_recipients, send_compose
+from mail.deletion import empty_trash, move_to_trash, purge_message_copy, restore_from_trash
 from mail.html_safety import sanitize_html
 from accounts.models import Mailbox
 from mail.models import Folder, MessageAttachment, MessageCopy
@@ -193,6 +196,44 @@ def mark_not_junk(request: HttpRequest, copy_id: int) -> HttpResponse:
     copy.folder = Folder.INBOX
     copy.save(update_fields=["folder"])
     return redirect("mail_message", copy_id=copy.id)
+
+
+@login_required
+def trash_message(request: HttpRequest, copy_id: int) -> HttpResponse:
+    mailbox = _mailbox(request)
+    copy = get_object_or_404(MessageCopy, pk=copy_id, mailbox=mailbox)
+    move_to_trash(copy)
+    return redirect("mail_folder", folder=Folder.TRASH)
+
+
+@login_required
+@require_POST
+def purge_message(request: HttpRequest, copy_id: int) -> HttpResponse:
+    mailbox = _mailbox(request)
+    copy = get_object_or_404(MessageCopy, pk=copy_id, mailbox=mailbox, folder=Folder.TRASH)
+    purge_message_copy(copy)
+    messages.success(request, "Message deleted permanently.")
+    return redirect("mail_folder", folder=Folder.TRASH)
+
+
+@login_required
+def restore_message(request: HttpRequest, copy_id: int) -> HttpResponse:
+    mailbox = _mailbox(request)
+    copy = get_object_or_404(MessageCopy, pk=copy_id, mailbox=mailbox, folder=Folder.TRASH)
+    restore_from_trash(copy)
+    return redirect("mail_folder", folder=Folder.INBOX)
+
+
+@login_required
+@require_POST
+def empty_trash_view(request: HttpRequest) -> HttpResponse:
+    mailbox = _mailbox(request)
+    n = empty_trash(mailbox)
+    if n:
+        messages.success(request, f"Deleted {n} message(s) permanently.")
+    else:
+        messages.info(request, "Trash is already empty.")
+    return redirect("mail_folder", folder=Folder.TRASH)
 
 
 @login_required

@@ -111,3 +111,19 @@ def apply_quota_reduction(mailbox) -> None:
         mailbox.over_quota = True
         mailbox.save(update_fields=["over_quota"])
     _update_mailbox_state(ms)
+
+
+def release_retained_bytes(mailbox, nbytes: int) -> None:
+    if nbytes <= 0:
+        return
+    with transaction.atomic():
+        ledger = StorageLedger.objects.select_for_update().get(pk=_ledger().pk)
+        ms = MailboxStorage.objects.select_for_update().get(pk=_mailbox_storage(mailbox).pk)
+        ledger.email_consumed_bytes = max(0, ledger.email_consumed_bytes - nbytes)
+        ms.charged_bytes = max(0, ms.charged_bytes - nbytes)
+        ledger.save(update_fields=["email_consumed_bytes"])
+        ms.save(update_fields=["charged_bytes", "updated_at"])
+        if mailbox.over_quota and ms.charged_bytes <= mailbox.quota_bytes:
+            mailbox.over_quota = False
+            mailbox.save(update_fields=["over_quota"])
+        _update_mailbox_state(ms)
