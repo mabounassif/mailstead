@@ -42,6 +42,13 @@ def _bootstrap() -> None:
     ensure_bootstrap_state()
     ensure_default_schedules()
 
+    from django.conf import settings
+
+    if settings.PUBLIC_URL:
+        from provider.webhook_register import ensure_webhook_registered
+
+        ensure_webhook_registered()
+
 
 def main() -> None:
     root = Path(__file__).resolve().parent.parent
