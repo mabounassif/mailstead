@@ -1,6 +1,6 @@
-# Deploy and Host Mailstead on Railway
+# Deploy and Host Mailstead with Railway
 
-Self-hosted email portal for small teams, backed by [Resend](https://resend.com) for delivery and inbound mail.
+Mailstead is a self-hosted webmail portal for small teams. [Resend](https://resend.com) sends and receives mail; Mailstead stores messages and provides the browser UI on a single Railway service with a persistent volume.
 
 ## About Hosting
 

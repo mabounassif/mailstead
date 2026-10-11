@@ -14,6 +14,9 @@ staticfiles/
 .coverage
 htmlcov/
 
+# Local Railway link state (use railway/mailstead.serialized-config.json for template)
+.railway/
+
 # Local keys and credentials (never commit)
 *.pem
 .railway-ssh-key
