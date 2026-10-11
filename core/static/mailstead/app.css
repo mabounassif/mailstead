@@ -66,11 +66,32 @@ img {
 }
 
 .app-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
   font-weight: 700;
   font-size: 1.05rem;
   color: var(--text);
   text-decoration: none;
   white-space: nowrap;
+  min-width: 0;
+}
+
+.app-brand-icon {
+  flex: 0 0 auto;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.45rem;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
+}
+
+.app-brand-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app-brand--static {
+  cursor: default;
 }
 
 .app-brand:hover {
@@ -612,4 +633,55 @@ dl.stats dd {
   .mail-sidebar-backdrop {
     display: none !important;
   }
+}
+
+.notify-section {
+  margin-bottom: 1.75rem;
+  padding: 1rem 1.15rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.notify-section h2 {
+  margin: 0 0 0.65rem;
+  font-size: 1.05rem;
+}
+
+.notify-steps {
+  margin: 0.5rem 0 1rem;
+  padding-left: 1.25rem;
+  color: var(--muted);
+}
+
+.device-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.device-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.device-list .muted {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.inline-form {
+  display: inline;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.65rem;
 }

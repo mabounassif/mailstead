@@ -14,6 +14,8 @@ _DEFAULTS = {
     "PUBLIC_URL": "http://testserver",
     "DATA_ROOT": "/tmp/mailstead-test-data",
     "RESEND_WEBHOOK_SECRET": "whsec_test",
+    "VAPID_PUBLIC_KEY": "BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U",
+    "VAPID_PRIVATE_KEY": "UUxI4O8-FbRWD_A7SWv7KwJlwn_-jJasAJB0DXwUgj1E",
 }
 for key, value in _DEFAULTS.items():
     os.environ.setdefault(key, value)

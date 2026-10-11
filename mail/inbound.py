@@ -38,7 +38,7 @@ def download_raw(url: str) -> bytes:
     return b"".join(chunks)
 
 
-def ingest_inbound(email_id: str, webhook_meta: dict | None = None) -> None:
+def ingest_inbound(email_id: str, webhook_meta: dict | None = None, *, notify: bool = True) -> None:
     if Message.objects.filter(resend_email_id=email_id).exists():
         return
 
@@ -105,12 +105,16 @@ def ingest_inbound(email_id: str, webhook_meta: dict | None = None) -> None:
             bcc_str = ",".join(_bare(x) for x in bcc_list)
             for mb in recipients:
                 folder = folder_for_inbound(mb, meta)
-                MessageCopy.objects.create(
+                copy = MessageCopy.objects.create(
                     message=msg,
                     mailbox=mb,
                     folder=folder,
                     bcc_snapshot=bcc_str if _is_sender_copy(mb, meta) else "",
                 )
+                if notify and folder == Folder.INBOX:
+                    from notifications.scheduling import schedule_new_mail_push
+
+                    schedule_new_mail_push(mb.id, copy.id)
 
 
 def _bare(value) -> str:

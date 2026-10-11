@@ -98,6 +98,7 @@ INSTALLED_APPS = [
     "provider",
     "storage",
     "enterprise",
+    "notifications",
 ]
 
 ENTERPRISE_API_URL = os.environ.get("ENTERPRISE_API_URL", "http://127.0.0.1:8765")
@@ -212,6 +213,10 @@ LOCAL_SEND_BUDGET_DAILY = os.environ.get("LOCAL_SEND_BUDGET_DAILY")
 LOCAL_SEND_BUDGET_MONTHLY = os.environ.get("LOCAL_SEND_BUDGET_MONTHLY")
 
 PASSWORD_RESET_RATE_LIMIT = os.environ.get("PASSWORD_RESET_RATE_LIMIT", "5/h")
+
+VAPID_PUBLIC_KEY = os.environ.get("VAPID_PUBLIC_KEY", "")
+VAPID_PRIVATE_KEY = os.environ.get("VAPID_PRIVATE_KEY", "")
+PUSH_DEBOUNCE_SECONDS = max(15, int(os.environ.get("PUSH_DEBOUNCE_SECONDS", "45")))
 
 EMAIL_BACKEND = "core.email_backends.ResendBackend"
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL") or (

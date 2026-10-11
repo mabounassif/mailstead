@@ -34,7 +34,11 @@ def reconcile_received(batch: int = 100) -> int:
                 continue
             if eid in known:
                 return enqueued
-            if enqueue("inbound", {"email_id": eid}, dedupe_key=f"inbound:{eid}"):
+            if enqueue(
+                "inbound",
+                {"email_id": eid, "notify": False},
+                dedupe_key=f"inbound:{eid}",
+            ):
                 enqueued += 1
                 known.add(eid)
         if not page.get("has_more"):
@@ -58,7 +62,11 @@ def import_all_received(cursor_name: str = CURSOR_NAME) -> int:
                 continue
             if Message.objects.filter(resend_email_id=eid).exists():
                 continue
-            if enqueue("inbound", {"email_id": eid}, dedupe_key=f"inbound:{eid}"):
+            if enqueue(
+                "inbound",
+                {"email_id": eid, "notify": False},
+                dedupe_key=f"inbound:{eid}",
+            ):
                 total += 1
             after = eid
         cursor.cursor_value = after or ""

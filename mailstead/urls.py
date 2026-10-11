@@ -5,6 +5,7 @@ from django.urls import include, path, reverse
 
 from accounts.views import SetupView
 from core.views import healthz, readyz
+from notifications.views import service_worker, web_manifest
 from provider.usage_views import usage_panel
 from provider.webhooks import resend_webhook
 
@@ -20,6 +21,9 @@ urlpatterns = [
     path("healthz", healthz),
     path("readyz", readyz),
     path("hooks/resend", resend_webhook),
+    path("manifest.webmanifest", web_manifest, name="web_manifest"),
+    path("sw.js", service_worker, name="service_worker"),
+    path("notifications/", include("notifications.urls")),
     path("accounts/", include("accounts.urls")),
     path("mail/", include("mail.urls")),
     path("ops/", include("storage.urls")),

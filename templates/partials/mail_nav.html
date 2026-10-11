@@ -8,5 +8,6 @@
     <a href="{% url 'mail_folder' 'junk' %}"{% if active_nav == 'junk' %} class="is-active"{% endif %}>Junk</a>
     <a href="{% url 'mail_folder' 'trash' %}"{% if active_nav == 'trash' %} class="is-active"{% endif %}>Trash</a>
     <a href="{% url 'mail_search' %}"{% if active_nav == 'search' %} class="is-active"{% endif %}>Search</a>
+    <a href="{% url 'notifications_settings' %}"{% if active_nav == 'notifications' %} class="is-active"{% endif %}>Notifications</a>
   </nav>
 </aside>

@@ -4,6 +4,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#2563eb">
+  <link rel="manifest" href="{% url 'web_manifest' %}">
+  <link rel="apple-touch-icon" sizes="180x180" href="{% static 'mailstead/icon-180.png' %}">
+  <link rel="icon" type="image/png" sizes="192x192" href="{% static 'mailstead/icon-192.png' %}">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Mailstead">
   <title>{% block title %}Mailstead{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'mailstead/app.css' %}">
   {% block extra_head %}{% endblock %}
@@ -18,9 +24,12 @@
       </svg>
     </button>
     {% endif %}
-    <a class="app-brand" href="{% if user.is_authenticated %}{% url 'mail_inbox' %}{% else %}{% url 'login' %}{% endif %}">
-      Mailstead{% if mail_domain %}<span class="app-brand-sub"> · {{ mail_domain }}</span>{% endif %}
-    </a>
+    {% if user.is_authenticated %}
+      {% url 'mail_inbox' as brand_href %}
+    {% else %}
+      {% url 'login' as brand_href %}
+    {% endif %}
+    {% include "partials/app_brand.html" %}
     <span class="app-header-spacer"></span>
     <div class="app-header-actions">
       {% if user.is_authenticated %}

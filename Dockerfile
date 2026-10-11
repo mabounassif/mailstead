@@ -17,6 +17,7 @@ COPY mail ./mail
 COPY provider ./provider
 COPY storage ./storage
 COPY enterprise ./enterprise
+COPY notifications ./notifications
 COPY templates ./templates
 
 RUN pip install --upgrade pip && pip install .

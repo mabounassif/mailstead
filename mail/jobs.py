@@ -11,7 +11,11 @@ from provider.webhook_register import ensure_webhook_registered
 
 @register("inbound")
 def handle_inbound(job):
-    ingest_inbound(job.payload["email_id"], job.payload.get("webhook"))
+    ingest_inbound(
+        job.payload["email_id"],
+        job.payload.get("webhook"),
+        notify=job.payload.get("notify", True),
+    )
 
 
 @register("outbound_send")

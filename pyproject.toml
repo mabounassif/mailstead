@@ -20,6 +20,7 @@ dependencies = [
     "PyJWT>=2.15,<3",
     "cryptography>=44,<46",
     "resend>=2.49,<3",
+    "pywebpush>=2.0,<3",
 ]
 
 [project.optional-dependencies]
@@ -27,11 +28,12 @@ dev = [
     "pytest>=8,<9",
     "pytest-django>=4.11,<5",
     "pytest-cov>=6,<7",
+    "pillow>=11,<12",
 ]
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["mailstead*", "core*", "accounts*", "jobs*", "mail*", "provider*", "storage*", "enterprise*", "mock_vendor*"]
+include = ["mailstead*", "core*", "accounts*", "jobs*", "mail*", "provider*", "storage*", "enterprise*", "notifications*", "mock_vendor*"]
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "core.settings_test"

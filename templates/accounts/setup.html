@@ -2,7 +2,7 @@
 {% block title %}Initial setup — Mailstead{% endblock %}
 {% block body_class %}auth-page{% endblock %}
 {% block header %}
-<span class="app-brand">Mailstead setup</span>
+{% include "partials/app_brand.html" with brand_title="Mailstead setup" brand_nolink=1 %}
 {% endblock %}
 {% block body %}
 <main class="app-main">

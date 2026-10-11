@@ -12,6 +12,7 @@ Mailstead runs as a single Docker service with a **persistent volume at `/data`*
 - **Resend** handles deliverability and inbound receiving; Mailstead stores and presents mail
 - **Admin + per-user mailboxes** for 10–50 users
 - **Ops dashboard** at `/ops/` for storage and worker health
+- **Installable web app** with branded icon (header + Add to Home Screen); optional **push notifications** for new mail when VAPID keys are set
 
 ## Common Use Cases
 
@@ -29,7 +30,7 @@ Mailstead runs as a single Docker service with a **persistent volume at `/data`*
 | `MAIL_DOMAIN` | Domain verified in Resend |
 | `ADMIN_RECOVERY_EMAIL` | Password reset delivery |
 
-Generated at deploy: `SECRET_KEY`, `APP_ENCRYPTION_KEY`, `BOOTSTRAP_TOKEN`. Optional: `DATABASE_URL` for Postgres instead of SQLite on `/data`.
+Generated at deploy: `SECRET_KEY`, `APP_ENCRYPTION_KEY`, `BOOTSTRAP_TOKEN`. Optional: `DATABASE_URL` for Postgres instead of SQLite on `/data`; `VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY` for Web Push (iPhone: Safari → Add to Home Screen, then **Notifications** in the mail sidebar).
 
 ## First deploy
 
