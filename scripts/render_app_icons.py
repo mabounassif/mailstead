@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parent.parent / "core" / "static" / "mailstead"
 DOC = Path(__file__).resolve().parent.parent / "docs" / "assets"
 SOURCE = ROOT / "icon-source.jpg"
 SIZES = (512, 192, 180)
+TEMPLATE_ICON = DOC / "mailstead-template-icon.png"
 
 
 def _square(img: Image.Image) -> Image.Image:
@@ -24,6 +25,20 @@ def _square(img: Image.Image) -> Image.Image:
     return img.crop((left, top, left + side, top + side))
 
 
+def _transparent_template_icon(base: Image.Image, size: int = 512) -> Image.Image:
+    rgba = base.convert("RGBA")
+    pixels = rgba.load()
+    w, h = rgba.size
+    for y in range(h):
+        for x in range(w):
+            r, g, b, a = pixels[x, y]
+            if r > 240 and g > 240 and b > 240:
+                pixels[x, y] = (r, g, b, 0)
+            else:
+                pixels[x, y] = (r, g, b, 255)
+    return rgba.resize((size, size), Image.Resampling.LANCZOS)
+
+
 def main() -> None:
     if not SOURCE.is_file():
         raise SystemExit(f"Missing {SOURCE} — add your logo as icon-source.jpg first.")
@@ -34,6 +49,8 @@ def main() -> None:
         out = ROOT / f"icon-{size}.png"
         _square(base).resize((size, size), Image.Resampling.LANCZOS).save(out, optimize=True)
         print(f"wrote {out}")
+    _transparent_template_icon(base).save(TEMPLATE_ICON, optimize=True)
+    print(f"wrote {TEMPLATE_ICON}")
 
 
 if __name__ == "__main__":

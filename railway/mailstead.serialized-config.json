@@ -1,0 +1,89 @@
+{
+  "buckets": {},
+  "services": {
+    "331e23f7-f97f-47ab-8da5-59f60e703b11": {
+      "name": "mailstead",
+      "icon": "https://raw.githubusercontent.com/mabounassif/mailstead/main/docs/assets/mailstead-template-icon.png",
+      "source": {
+        "repo": "https://github.com/mabounassif/mailstead",
+        "rootDirectory": null
+      },
+      "deploy": {
+        "healthcheckPath": "/healthz",
+        "restartPolicyMaxRetries": 10,
+        "restartPolicyType": "ON_FAILURE",
+        "startCommand": "python -m mailstead.run"
+      },
+      "networking": {
+        "serviceDomains": {
+          "<hasDomain>:8000": {
+            "port": 8000
+          }
+        }
+      },
+      "variables": {
+        "SECRET_KEY": {
+          "defaultValue": "${{secret(64)}}",
+          "isOptional": false,
+          "description": "Django secret for sessions and CSRF. Auto-generated at deploy; rotate only if compromised."
+        },
+        "APP_ENCRYPTION_KEY": {
+          "defaultValue": "${{secret(32)}}",
+          "isOptional": false,
+          "description": "Fernet key for encrypting sensitive values in the database. Auto-generated at deploy."
+        },
+        "BOOTSTRAP_TOKEN": {
+          "defaultValue": "${{secret(32)}}",
+          "isOptional": false,
+          "description": "One-time token for /setup/<token>/ to create the first admin. Copy from variables after deploy."
+        },
+        "RESEND_API_KEY": {
+          "isOptional": false,
+          "description": "Resend API key with send and receive access. Create at https://resend.com/api-keys"
+        },
+        "MAIL_DOMAIN": {
+          "isOptional": false,
+          "description": "Domain verified in Resend for sending and receiving (e.g. mail.example.com)."
+        },
+        "ADMIN_RECOVERY_EMAIL": {
+          "isOptional": false,
+          "description": "Inbox that receives admin password-reset emails (any address you control)."
+        },
+        "PUBLIC_URL": {
+          "defaultValue": "https://${{RAILWAY_PUBLIC_DOMAIN}}",
+          "isOptional": false,
+          "description": "Public base URL of this deployment. Defaults to your Railway domain; set if using a custom domain."
+        },
+        "DATA_ROOT": {
+          "defaultValue": "/data",
+          "isOptional": false,
+          "description": "Path for SQLite and mail blobs. Must match the volume mount (/data)."
+        },
+        "RAILWAY_DEPLOYMENT_DRAINING_SECONDS": {
+          "defaultValue": "30",
+          "isOptional": false,
+          "description": "Grace period (seconds) for Gunicorn and the worker to shut down cleanly during deploys."
+        },
+        "VAPID_PUBLIC_KEY": {
+          "isOptional": true,
+          "description": "Optional Web Push VAPID public key (base64url). Generate with py-vapid; pair with VAPID_PRIVATE_KEY."
+        },
+        "VAPID_PRIVATE_KEY": {
+          "defaultValue": "${{secret(32)}}",
+          "isOptional": true,
+          "description": "Optional Web Push VAPID private key. Auto-generated if omitted; required with VAPID_PUBLIC_KEY for push."
+        },
+        "PUSH_DEBOUNCE_SECONDS": {
+          "defaultValue": "45",
+          "isOptional": true,
+          "description": "Seconds to debounce new-mail push notifications per mailbox (default 45)."
+        }
+      },
+      "volumeMounts": {
+        "331e23f7-f97f-47ab-8da5-59f60e703b11": {
+          "mountPath": "/data"
+        }
+      }
+    }
+  }
+}

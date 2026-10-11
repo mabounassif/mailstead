@@ -1,29 +1,47 @@
-# Railway template composer steps
+# Railway template
 
-Railway Config as Code (`railway.json`) is deprecated for new projects. Configure the template in the composer:
+Published: [Deploy Mailstead](https://railway.com/deploy/mailstead) (code `mailstead`).
 
-- Build: Dockerfile
-- Start: `python -m mailstead.run`
-- Healthcheck: `/readyz`
-- Volume mount: `/data`
-- Variables:
-  - `SECRET_KEY=${{secret(64)}}`
-  - `APP_ENCRYPTION_KEY=${{secret(32)}}`
-  - `BOOTSTRAP_TOKEN=${{secret(32)}}`
-  - `PUBLIC_URL=https://${RAILWAY_PUBLIC_DOMAIN}`
-  - `RESEND_API_KEY` (deployer supplied)
-  - `MAIL_DOMAIN` (deployer supplied)
-  - `ADMIN_RECOVERY_EMAIL` (deployer supplied)
-  - `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` (optional `${{secret(...)}}` — Web Push / iPhone Home Screen notifications; generate with `py-vapid`)
-  - `PUSH_DEBOUNCE_SECONDS` (optional, default `45`)
+Source of truth for the composer canvas: [`railway/mailstead.serialized-config.json`](../railway/mailstead.serialized-config.json).
 
-**Template branding:** use `docs/assets/mailstead-template-logo.jpg` (same file as `core/static/mailstead/icon-source.jpg`). Regenerate PNG sizes after replacing that JPEG: `python scripts/render_app_icons.py`.
+## Service: mailstead
 
-**Published template:** [Deploy Mailstead](https://railway.com/deploy/mailstead) (code `mailstead`). Also listed under [Workspace → Templates](https://railway.com/workspace/templates).
+| Setting | Value |
+|---------|--------|
+| Source | `https://github.com/mabounassif/mailstead` (Dockerfile) |
+| Start | `python -m mailstead.run` |
+| Healthcheck | `/healthz` |
+| Volume | `/data` |
+| Icon | `docs/assets/mailstead-template-icon.png` (transparent PNG on GitHub raw URL in JSON) |
 
-Composer should match this repo:
+## Variables
 
-- Build: Dockerfile
-- Start: `python -m mailstead.run`
-- Healthcheck: `/healthz` (use `/readyz` only if you accept worker heartbeat requirements)
-- Volume mount: `/data`
+All template variables must have a **description** in the composer. Defaults and copy live in `railway/mailstead.serialized-config.json`.
+
+| Variable | Required | Notes |
+|----------|----------|--------|
+| `RESEND_API_KEY` | yes | Resend dashboard |
+| `MAIL_DOMAIN` | yes | Verified in Resend |
+| `ADMIN_RECOVERY_EMAIL` | yes | Password reset delivery |
+| `SECRET_KEY` | yes | `${{secret(64)}}` |
+| `APP_ENCRYPTION_KEY` | yes | `${{secret(32)}}` |
+| `BOOTSTRAP_TOKEN` | yes | `${{secret(32)}}` |
+| `PUBLIC_URL` | yes | `https://${{RAILWAY_PUBLIC_DOMAIN}}` |
+| `DATA_ROOT` | yes | default `/data` |
+| `RAILWAY_DEPLOYMENT_DRAINING_SECONDS` | yes | default `30` |
+| `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` | optional | Web Push |
+| `PUSH_DEBOUNCE_SECONDS` | optional | default `45` |
+
+## Branding
+
+- **Template card + service icon:** 512×512 PNG with transparent background — `docs/assets/mailstead-template-icon.png`.
+- Regenerate from logo JPEG: `python scripts/render_app_icons.py` (requires `pip install pillow` or dev extras).
+
+## Maintainer sync
+
+```bash
+python scripts/sync_railway_template.py              # validate JSON
+python scripts/sync_railway_template.py --publish-metadata   # CLI: readme + marketplace image
+```
+
+Railway’s public API does not update `serializedConfig`; after changing the JSON, open **Workspace → Templates → mailstead → Edit** and align icons, defaults, and variable descriptions (or import via composer if available).
