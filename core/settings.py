@@ -40,10 +40,16 @@ PUBLIC_URL = os.environ.get("PUBLIC_URL") or (
 _allowed_hosts = [h.strip() for h in os.environ.get("ALLOWED_HOSTS", "").split(",") if h.strip()]
 if _railway_domain and _railway_domain not in _allowed_hosts:
     _allowed_hosts.append(_railway_domain)
-if DEBUG:
+_private_domain = os.environ.get("RAILWAY_PRIVATE_DOMAIN", "")
+if _private_domain and _private_domain not in _allowed_hosts:
+    _allowed_hosts.append(_private_domain)
+_on_railway = bool(os.environ.get("RAILWAY_ENVIRONMENT") or _railway_domain)
+if DEBUG or _on_railway:
     for host in ("localhost", "127.0.0.1", "[::1]"):
         if host not in _allowed_hosts:
             _allowed_hosts.append(host)
+if _on_railway and ".up.railway.app" not in _allowed_hosts:
+    _allowed_hosts.append(".up.railway.app")
 ALLOWED_HOSTS = _allowed_hosts
 
 DATA_ROOT = data_root()
