@@ -169,10 +169,50 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
 SECURE_HSTS_PRELOAD = not DEBUG
 SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", "").lower() in ("1", "true") and not DEBUG
 
-_csrf_origin = PUBLIC_URL.rstrip("/")
-CSRF_TRUSTED_ORIGINS = [_csrf_origin]
-if _csrf_origin.startswith("https://"):
-    CSRF_TRUSTED_ORIGINS.append(_csrf_origin.replace("https://", "http://", 1))
+def build_csrf_trusted_origins(
+    public_url: str,
+    allowed_hosts: list[str],
+    *,
+    extra: str = "",
+    on_railway: bool = False,
+) -> list[str]:
+    """Origins allowed for CSRF Referer/Origin checks (must include every URL users browse)."""
+    origins: set[str] = set()
+
+    def add_url(url: str) -> None:
+        url = url.strip().rstrip("/")
+        if not url:
+            return
+        if "://" not in url:
+            url = f"https://{url}"
+        origins.add(url)
+        if url.startswith("https://"):
+            origins.add(url.replace("https://", "http://", 1))
+
+    add_url(public_url)
+    for item in extra.split(","):
+        add_url(item)
+
+    for host in allowed_hosts:
+        if not host or host == "*":
+            continue
+        if host.startswith("."):
+            origins.add(f"https://*{host}")
+            continue
+        add_url(f"https://{host}")
+
+    if on_railway:
+        origins.add("https://*.up.railway.app")
+
+    return sorted(origins)
+
+
+CSRF_TRUSTED_ORIGINS = build_csrf_trusted_origins(
+    PUBLIC_URL,
+    _allowed_hosts,
+    extra=os.environ.get("CSRF_TRUSTED_ORIGINS", ""),
+    on_railway=_on_railway,
+)
 
 LOGIN_URL = "/accounts/login/"
 LOGIN_REDIRECT_URL = "/mail/"
