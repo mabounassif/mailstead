@@ -11,23 +11,35 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from mail.compose import reply_all_recipients, send_compose
 from mail.html_safety import sanitize_html
+from accounts.models import Mailbox
 from mail.models import Folder, MessageAttachment, MessageCopy
 
 SHA256_RE = re.compile(r"^[a-f0-9]{64}$")
 
 
-def _mailbox(request: HttpRequest):
-    if not request.user.is_authenticated:
-        raise Http404()
+def _mailbox_or_notice(request: HttpRequest) -> tuple[Mailbox | None, HttpResponse | None]:
     try:
-        return request.user.mailbox
-    except Exception:
+        return request.user.mailbox, None
+    except Mailbox.DoesNotExist:
+        return None, render(
+            request,
+            "mail/no_mailbox.html",
+            {"is_staff": request.user.is_staff},
+        )
+
+
+def _mailbox(request: HttpRequest) -> Mailbox:
+    mailbox, notice = _mailbox_or_notice(request)
+    if notice is not None:
         raise Http404()
+    return mailbox
 
 
 @login_required
 def inbox(request: HttpRequest) -> HttpResponse:
-    mailbox = _mailbox(request)
+    mailbox, notice = _mailbox_or_notice(request)
+    if notice is not None:
+        return notice
     qs = MessageCopy.objects.filter(mailbox=mailbox, folder=Folder.INBOX).select_related("message")
     paginator = Paginator(qs, 25)
     page = paginator.get_page(request.GET.get("page"))

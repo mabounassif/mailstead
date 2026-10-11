@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.http import HttpRequest, HttpResponse
-from django.urls import include, path
+from django.shortcuts import redirect
+from django.urls import include, path, reverse
 
 from accounts.views import SetupView
 from core.views import healthz, readyz
@@ -8,7 +9,9 @@ from provider.usage_views import usage_panel
 from provider.webhooks import resend_webhook
 
 
-def home(_request: HttpRequest) -> HttpResponse:
+def home(request: HttpRequest) -> HttpResponse:
+    if request.user.is_authenticated:
+        return redirect(reverse("mail_inbox"))
     return HttpResponse("Mailstead", content_type="text/plain")
 
 

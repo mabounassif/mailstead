@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Mailstead</title></head>
+<body>
+  <h1>No mailbox yet</h1>
+  <p>Your account can sign in, but no mailbox has been assigned.</p>
+  {% if is_staff %}
+    <p><a href="/admin/accounts/mailbox/add/">Create a mailbox in the admin</a> and link it to your user.</p>
+  {% else %}
+    <p>Ask an administrator to assign a mailbox to your account.</p>
+  {% endif %}
+  <p><a href="{% url 'logout' %}">Sign out</a></p>
+</body>
+</html>

@@ -11,7 +11,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 from django.db import transaction
 
-from accounts.models import BootstrapState
+from accounts.models import BootstrapState, Mailbox
 
 logger = logging.getLogger(__name__)
 
@@ -75,6 +75,9 @@ def consume_bootstrap(username: str, password: str) -> None:
         if recovery:
             user.recovery_email = recovery
             user.save(update_fields=["recovery_email"])
+        domain = settings.MAIL_DOMAIN.strip()
+        if domain:
+            Mailbox.objects.create(user=user, address=f"{username}@{domain}")
         from django.utils import timezone
 
         state.consumed_at = timezone.now()

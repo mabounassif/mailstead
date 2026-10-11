@@ -158,7 +158,7 @@ if _csrf_origin.startswith("https://"):
     CSRF_TRUSTED_ORIGINS.append(_csrf_origin.replace("https://", "http://", 1))
 
 LOGIN_URL = "/accounts/login/"
-LOGIN_REDIRECT_URL = "/"
+LOGIN_REDIRECT_URL = "/mail/"
 LOGOUT_REDIRECT_URL = "/accounts/login/"
 
 AUTHENTICATION_BACKENDS = [
