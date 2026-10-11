@@ -6,9 +6,9 @@ Mailstead is a self-hosted webmail portal for small teams (about 10–50 users),
 
 - **Mailbox** — Inbox, Sent, Drafts, Archive, Junk, Trash; compose, reply, forward, attachments, search, unread state
 - **Mail pipeline** — Resend webhooks, inbound ingest, outbound send, idempotent jobs, reconcile and `import_received`
+- **Filtering** — Local filter rules and junk folder; DMARC-based junk routing
 - **Operations** — `/data` storage ledger, quotas, overflow, ops dashboard; Resend usage snapshots and alert records
 - **Deploy** — Single-container web + worker, Docker, [Railway docs](docs/deploy-railway.md), [published template](https://railway.com/deploy/mailstead)
-- **Enterprise (OSS)** — License/entitlement client, mock vendor, spam classification hooks and data-flow boundaries
 - **Notifications** — Web Push + PWA install path (VAPID), per-user subscription settings
 - **Account safety** — Bootstrap setup, recovery email, rate limits, session handling
 
@@ -17,7 +17,6 @@ Mailstead is a self-hosted webmail portal for small teams (about 10–50 users),
 | Area | Goal |
 |------|------|
 | Usage alerts | Email or in-app notices when thresholds fire (today: `UsageAlert` rows + minimal usage UI) |
-| Enterprise spam | Production hosted classifier integration, clearer operator docs for license lifecycle |
 | Provider hardening | Confirm and document Resend edge cases (custom `Message-ID`, BCC routing, quota-unretrievable mail) |
 | Quality | Postgres job in CI; periodic dependency updates |
 
@@ -25,7 +24,7 @@ Mailstead is a self-hosted webmail portal for small teams (about 10–50 users),
 
 - Mailbox **aliases** and clearer multi-address routing
 - **Shared mailboxes** (if demand appears)
-- Richer **filter rules** UI and junk feedback loop to enterprise vendor
+- Richer **filter rules** UI and junk feedback
 - Stronger **search** (full-text or indexed fields beyond current basics)
 - **Import/export** improvements for migrations between hosts
 

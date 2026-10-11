@@ -8,7 +8,7 @@ Self-hosted webmail portal backed by [Resend](https://resend.com) for sending an
 
 - Inbox, Sent, Drafts, Archive, Junk, Trash; compose, reply, forward, attachments
 - Inbound mail via Resend webhooks; outbound via Resend API
-- Per-mailbox quotas, usage dashboard, optional enterprise entitlements API
+- Per-mailbox quotas and Resend usage dashboard
 - Railway-friendly: health (`/healthz`), readiness (`/readyz`), volume at `/data`
 
 ## Quick start (local)

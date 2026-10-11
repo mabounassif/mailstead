@@ -28,7 +28,6 @@ urlpatterns = [
     path("mail/", include("mail.urls")),
     path("ops/", include("storage.urls")),
     path("ops/resend-usage/", usage_panel, name="usage_panel"),
-    path("ops/enterprise/", include("enterprise.urls")),
     path("setup/<str:token>/", SetupView.as_view(), name="setup"),
     path("", home),
 ]

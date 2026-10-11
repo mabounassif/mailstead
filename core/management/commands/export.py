@@ -7,10 +7,9 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         from accounts.models import Alias, Mailbox, User
-        from enterprise.models import EntitlementCache, License
         from provider.models import ProviderSettings
 
-        models = [User, Mailbox, Alias, License, EntitlementCache, ProviderSettings]
+        models = [User, Mailbox, Alias, ProviderSettings]
         for model in models:
             for obj in model.objects.all():
                 self.stdout.write(serializers.serialize("json", [obj]))

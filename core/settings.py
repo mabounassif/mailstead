@@ -97,13 +97,8 @@ INSTALLED_APPS = [
     "mail",
     "provider",
     "storage",
-    "enterprise",
     "notifications",
 ]
-
-ENTERPRISE_API_URL = os.environ.get("ENTERPRISE_API_URL", "http://127.0.0.1:8765")
-ENTERPRISE_PUBLIC_KEYS = [k for k in os.environ.get("ENTERPRISE_PUBLIC_KEYS", "").split("---KEY---") if k.strip()]
-ENTERPRISE_GRACE_HOURS = int(os.environ.get("ENTERPRISE_GRACE_HOURS", "72"))
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
