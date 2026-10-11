@@ -30,8 +30,7 @@ RUN mkdir -p /data && chown mailstead:mailstead /data
 # Start as root so mailstead.run can chown a freshly mounted volume, then drop privileges.
 USER root
 
-ENV DATA_ROOT=/data \
-    GUNICORN_BIND=0.0.0.0:8000
+ENV DATA_ROOT=/data
 
 EXPOSE 8000
 

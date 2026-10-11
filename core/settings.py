@@ -44,6 +44,8 @@ if DEBUG:
     for host in ("localhost", "127.0.0.1", "[::1]"):
         if host not in _allowed_hosts:
             _allowed_hosts.append(host)
+if "healthcheck.railway.app" not in _allowed_hosts:
+    _allowed_hosts.append("healthcheck.railway.app")
 ALLOWED_HOSTS = _allowed_hosts
 
 DATA_ROOT = data_root()
