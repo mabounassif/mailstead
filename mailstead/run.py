@@ -10,6 +10,12 @@ import time
 from pathlib import Path
 
 
+def _prepare_data_volume() -> None:
+    from core.paths import prepare_data_volume
+
+    prepare_data_volume()
+
+
 def _ensure_data_dirs() -> None:
     from core.paths import ensure_data_dirs
 
@@ -22,7 +28,7 @@ def _django_setup() -> None:
 
 def _run_migrations() -> None:
     subprocess.check_call([sys.executable, "manage.py", "migrate", "--noinput"])
-    subprocess.check_call([sys.executable, "manage.py", "createcachetable", "--noinput"])
+    subprocess.check_call([sys.executable, "manage.py", "createcachetable"])
 
 
 def _bootstrap() -> None:
@@ -40,6 +46,7 @@ def _bootstrap() -> None:
 def main() -> None:
     root = Path(__file__).resolve().parent.parent
     os.chdir(root)
+    _prepare_data_volume()
     _ensure_data_dirs()
     _django_setup()
     _run_migrations()

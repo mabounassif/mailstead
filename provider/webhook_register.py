@@ -6,7 +6,7 @@ from django.conf import settings
 
 from provider.crypto import encrypt
 from provider.models import ProviderSettings
-from provider.resend_client import ResendError, create_webhook, list_webhooks
+from provider.resend_client import ResendError, create_webhook, list_webhooks, resend_api_configured
 
 logger = logging.getLogger(__name__)
 
@@ -28,13 +28,17 @@ def webhook_endpoint() -> str:
 
 def ensure_webhook_registered() -> ProviderSettings:
     row = ProviderSettings.objects.first() or ProviderSettings.objects.create()
+    if not resend_api_configured():
+        logger.warning("Skipping webhook registration: set a valid RESEND_API_KEY")
+        return row
     endpoint = webhook_endpoint()
     try:
         hooks = list_webhooks()
     except ResendError as exc:
+        logger.warning("Webhook registration failed: %s", exc)
         row.webhook_disabled = True
         row.save(update_fields=["webhook_disabled", "updated_at"])
-        raise exc
+        return row
     items = hooks.get("data") or hooks.get("webhooks") or []
     for hook in items:
         if hook.get("endpoint") == endpoint:

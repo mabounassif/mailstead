@@ -4,7 +4,7 @@ import logging
 
 from mail.models import Message, ReconcileCursor
 from jobs.queue import enqueue
-from provider.resend_client import list_receiving
+from provider.resend_client import ResendError, list_receiving, resend_api_configured
 
 logger = logging.getLogger(__name__)
 
@@ -13,11 +13,18 @@ CURSOR_NAME = "received_import"
 
 def reconcile_received(batch: int = 100) -> int:
     """Page newest received mail; enqueue ingest for unknown ids."""
+    if not resend_api_configured():
+        logger.debug("Skipping received reconcile: RESEND_API_KEY not configured")
+        return 0
     known = set(Message.objects.exclude(resend_email_id="").values_list("resend_email_id", flat=True))
     enqueued = 0
     after = None
     while True:
-        page = list_receiving(limit=batch, after=after)
+        try:
+            page = list_receiving(limit=batch, after=after)
+        except ResendError as exc:
+            logger.warning("Received reconcile failed: %s", exc)
+            return enqueued
         items = page.get("data") or page.get("emails") or []
         if not items:
             break

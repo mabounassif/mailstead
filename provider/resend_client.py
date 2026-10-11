@@ -22,6 +22,29 @@ class ResendError(Exception):
         self.error_type = error_type
 
 
+_PLACEHOLDER_KEYS = frozenset(
+    {
+        "re_placeholder",
+        "re_replace_me",
+        "re_test",
+        "re_test_key",
+        "re_xxxxxxxx",
+    }
+)
+
+
+def resend_api_configured() -> bool:
+    """True when a real Resend API key is set (not empty or a dev placeholder)."""
+    key = (settings.RESEND_API_KEY or "").strip()
+    if not key.startswith("re_") or len(key) < 12:
+        return False
+    if key in _PLACEHOLDER_KEYS:
+        return False
+    if key.startswith("re_xxx"):
+        return False
+    return True
+
+
 @dataclass
 class TokenBucket:
     rate: float
@@ -106,13 +129,20 @@ def get_receiving_email(email_id: str) -> dict[str, Any]:
 
 def list_receiving(limit: int = 100, after: str | None = None) -> dict[str, Any]:
     import resend
+    from resend.emails._receiving import Receiving
 
     resend.api_key = settings.RESEND_API_KEY
     _wait_rate_limit()
-    params: dict[str, Any] = {"limit": limit}
+    params: Receiving.ListParams = {"limit": limit}
     if after:
         params["after"] = after
-    return resend.Emails.Receiving.list(**params)
+    try:
+        response = resend.Emails.Receiving.list(params)
+        if hasattr(response, "model_dump"):
+            return response.model_dump()
+        return dict(response)
+    except Exception as exc:
+        raise _parse_resend_exception(exc) from exc
 
 
 def send_email(payload: dict[str, Any], idempotency_key: str) -> dict[str, Any]:
@@ -136,7 +166,13 @@ def list_webhooks() -> dict[str, Any]:
 
     resend.api_key = settings.RESEND_API_KEY
     _wait_rate_limit()
-    return resend.Webhooks.list()
+    try:
+        response = resend.Webhooks.list()
+        if hasattr(response, "model_dump"):
+            return response.model_dump()
+        return dict(response)
+    except Exception as exc:
+        raise _parse_resend_exception(exc) from exc
 
 
 def create_webhook(endpoint: str, events: list[str]) -> dict[str, Any]:
@@ -144,7 +180,13 @@ def create_webhook(endpoint: str, events: list[str]) -> dict[str, Any]:
 
     resend.api_key = settings.RESEND_API_KEY
     _wait_rate_limit()
-    return resend.Webhooks.create({"endpoint": endpoint, "events": events})
+    try:
+        response = resend.Webhooks.create({"endpoint": endpoint, "events": events})
+        if hasattr(response, "model_dump"):
+            return response.model_dump()
+        return dict(response)
+    except Exception as exc:
+        raise _parse_resend_exception(exc) from exc
 
 
 def list_domains() -> dict[str, Any]:
