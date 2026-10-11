@@ -52,7 +52,10 @@ def main() -> None:
     _run_migrations()
     _bootstrap()
 
-    bind = os.environ.get("GUNICORN_BIND", "0.0.0.0:8000")
+    bind = os.environ.get("GUNICORN_BIND")
+    if not bind:
+        port = os.environ.get("PORT", "8000")
+        bind = f"0.0.0.0:{port}"
     gunicorn_cmd = [
         sys.executable,
         "-m",
