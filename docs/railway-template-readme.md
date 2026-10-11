@@ -2,6 +2,14 @@
 
 Mailstead is a self-hosted webmail portal for small teams. [Resend](https://resend.com) sends and receives mail; Mailstead stores messages and provides the browser UI on a single Railway service with a persistent volume.
 
+## Screenshots
+
+![Sign in](https://raw.githubusercontent.com/mabounassif/mailstead/main/docs/assets/screenshots/login.png)
+
+![Inbox](https://raw.githubusercontent.com/mabounassif/mailstead/main/docs/assets/screenshots/inbox.png)
+
+![Compose](https://raw.githubusercontent.com/mabounassif/mailstead/main/docs/assets/screenshots/compose.png)
+
 ## About Hosting
 
 Mailstead runs as a single Docker service with a **persistent volume at `/data`** (SQLite database and mail blobs). A background worker process handles inbound webhooks, outbound sends, and scheduled jobs. Attach a Railway public domain; `PUBLIC_URL` is set from `RAILWAY_PUBLIC_DOMAIN`.

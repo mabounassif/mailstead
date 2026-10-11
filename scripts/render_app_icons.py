@@ -25,20 +25,6 @@ def _square(img: Image.Image) -> Image.Image:
     return img.crop((left, top, left + side, top + side))
 
 
-def _transparent_template_icon(base: Image.Image, size: int = 512) -> Image.Image:
-    rgba = base.convert("RGBA")
-    pixels = rgba.load()
-    w, h = rgba.size
-    for y in range(h):
-        for x in range(w):
-            r, g, b, a = pixels[x, y]
-            if r > 240 and g > 240 and b > 240:
-                pixels[x, y] = (r, g, b, 0)
-            else:
-                pixels[x, y] = (r, g, b, 255)
-    return rgba.resize((size, size), Image.Resampling.LANCZOS)
-
-
 def main() -> None:
     if not SOURCE.is_file():
         raise SystemExit(f"Missing {SOURCE} — add your logo as icon-source.jpg first.")
@@ -49,7 +35,7 @@ def main() -> None:
         out = ROOT / f"icon-{size}.png"
         _square(base).resize((size, size), Image.Resampling.LANCZOS).save(out, optimize=True)
         print(f"wrote {out}")
-    _transparent_template_icon(base).save(TEMPLATE_ICON, optimize=True)
+    _square(base).resize((512, 512), Image.Resampling.LANCZOS).save(TEMPLATE_ICON, optimize=True)
     print(f"wrote {TEMPLATE_ICON}")
 
 
