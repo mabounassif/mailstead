@@ -2,6 +2,12 @@
 {% block title %}{{ folder|title }} — Mailstead{% endblock %}
 {% block mail_content %}
 <h1 class="page-title">{{ folder|title }}</h1>
+{% if folder == 'trash' %}
+<form method="post" action="{% url 'mail_empty_trash' %}" style="margin-bottom:1rem;">
+  {% csrf_token %}
+  <button type="submit">Empty trash</button>
+</form>
+{% endif %}
 <ul class="message-list">
   {% for copy in page %}
   <li>
