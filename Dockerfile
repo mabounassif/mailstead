@@ -8,7 +8,7 @@ RUN groupadd --system mailstead && useradd --system --gid mailstead --create-hom
 
 WORKDIR /app
 
-COPY pyproject.toml manage.py ./
+COPY pyproject.toml README.md manage.py ./
 COPY mailstead ./mailstead
 COPY core ./core
 COPY accounts ./accounts
