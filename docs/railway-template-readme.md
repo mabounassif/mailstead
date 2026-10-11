@@ -1,47 +1,52 @@
-# Mailstead
+# Deploy and Host Mailstead on Railway
 
 Self-hosted email portal for small teams, backed by [Resend](https://resend.com) for delivery and inbound mail.
 
-## What you get
+## About Hosting
 
-- Web mail UI (inbox, compose, search, folders)
-- Django admin for users, mailboxes, and aliases
-- Durable outbound/inbound pipeline with webhooks and background jobs
-- SQLite on a persistent volume by default (optional Postgres via `DATABASE_URL`)
-- Staff ops dashboard at `/ops/`
+Mailstead runs as a single Docker service with a **persistent volume at `/data`** (SQLite database and mail blobs). A background worker process handles inbound webhooks, outbound sends, and scheduled jobs. Attach a Railway public domain; `PUBLIC_URL` is set from `RAILWAY_PUBLIC_DOMAIN`.
+
+## Why Deploy
+
+- **Own your mail UI** without running a full mail stack (Postfix, Dovecot, etc.)
+- **Resend** handles deliverability and inbound receiving; Mailstead stores and presents mail
+- **Admin + per-user mailboxes** for 10–50 users
+- **Ops dashboard** at `/ops/` for storage and worker health
+
+## Common Use Cases
+
+- Team shared hosting on your domain via Resend
+- Internal notifications inbox with a simple web client
+- Staging or production portal next to your app on Railway
+
+## Dependencies for
+
+### Deployment Dependencies
+
+| You provide | Purpose |
+|-------------|---------|
+| `RESEND_API_KEY` | Resend API (send + receive APIs) |
+| `MAIL_DOMAIN` | Domain verified in Resend |
+| `ADMIN_RECOVERY_EMAIL` | Password reset delivery |
+
+Generated at deploy: `SECRET_KEY`, `APP_ENCRYPTION_KEY`, `BOOTSTRAP_TOKEN`. Optional: `DATABASE_URL` for Postgres instead of SQLite on `/data`.
 
 ## First deploy
 
-1. Deploy this template and wait until the service is healthy (`/readyz`).
-2. Open `https://<your-domain>/setup/<BOOTSTRAP_TOKEN>` once to create the administrator account.
-   - Find `BOOTSTRAP_TOKEN` in your service variables (generated at deploy).
-3. Sign in, create additional users and mailboxes in **Admin** (`/admin/`).
-4. Point your Resend domain DNS to match `MAIL_DOMAIN` and ensure `RESEND_API_KEY` has the right permissions.
-
-## Required variables (you supply)
-
-| Variable | Description |
-|----------|-------------|
-| `RESEND_API_KEY` | Resend API key |
-| `MAIL_DOMAIN` | Domain configured in Resend (e.g. `mail.example.com`) |
-| `ADMIN_RECOVERY_EMAIL` | Where password-reset links are sent |
-
-## Generated at deploy
-
-`SECRET_KEY`, `APP_ENCRYPTION_KEY`, and `BOOTSTRAP_TOKEN` are created automatically.
-
-`PUBLIC_URL` defaults to `https://${RAILWAY_PUBLIC_DOMAIN}`.
+1. Deploy and wait until **healthcheck** passes (`/healthz` recommended on Railway).
+2. Open `https://<your-domain>/setup/<BOOTSTRAP_TOKEN>` once (token is in service variables).
+3. Create users and mailboxes in **Admin** (`/admin/`).
+4. Configure Resend DNS for `MAIL_DOMAIN` and register webhooks (scheduled job or admin).
 
 ## Volume
 
-Mail and SQLite data live on `/data`. **Do not remove the volume** unless you intend to wipe mail storage.
+Do not remove the `/data` volume unless you intend to wipe mail storage.
 
-## Health checks
+## Health
 
 - Liveness: `/healthz`
-- Readiness: `/readyz` (database, volume, migrations, worker heartbeat)
+- Readiness: `/readyz` (includes worker heartbeat)
 
-## Docs
+## Source
 
-- [Deploy on Railway](https://github.com/mabounassif/mailstead/blob/main/docs/deploy-railway.md)
-- [Project README](https://github.com/mabounassif/mailstead/blob/main/README.md)
+[GitHub: mabounassif/mailstead](https://github.com/mabounassif/mailstead)

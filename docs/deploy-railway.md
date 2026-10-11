@@ -10,4 +10,4 @@ Required variables: `RESEND_API_KEY`, `MAIL_DOMAIN`, `ADMIN_RECOVERY_EMAIL`, plu
 
 Set `PUBLIC_URL=https://${RAILWAY_PUBLIC_DOMAIN}`.
 
-**No Railway template has been published yet.**
+Deploy from the **mailstead** Railway template (workspace Templates or marketplace, code `_fOyE2`), or manually from this repo as below.

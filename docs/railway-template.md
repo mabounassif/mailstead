@@ -15,4 +15,11 @@ Railway Config as Code (`railway.json`) is deprecated for new projects. Configur
   - `MAIL_DOMAIN` (deployer supplied)
   - `ADMIN_RECOVERY_EMAIL` (deployer supplied)
 
-**This template is not published.**
+**Published template:** [Deploy Mailstead](https://railway.com/deploy/mailstead) (code `mailstead`). Also listed under [Workspace → Templates](https://railway.com/workspace/templates).
+
+Composer should match this repo:
+
+- Build: Dockerfile
+- Start: `python -m mailstead.run`
+- Healthcheck: `/healthz` (use `/readyz` only if you accept worker heartbeat requirements)
+- Volume mount: `/data`
