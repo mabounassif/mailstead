@@ -48,8 +48,10 @@ if DEBUG or _on_railway:
     for host in ("localhost", "127.0.0.1", "[::1]"):
         if host not in _allowed_hosts:
             _allowed_hosts.append(host)
-if _on_railway and ".up.railway.app" not in _allowed_hosts:
-    _allowed_hosts.append(".up.railway.app")
+if _on_railway:
+    for host in (".up.railway.app", "healthcheck.railway.app"):
+        if host not in _allowed_hosts:
+            _allowed_hosts.append(host)
 ALLOWED_HOSTS = _allowed_hosts
 
 DATA_ROOT = data_root()
