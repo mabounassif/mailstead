@@ -31,6 +31,9 @@ class UserLoginView(LoginView):
     template_name = "accounts/login.html"
     authentication_form = MailsteadAuthenticationForm
 
+    def get_success_url(self) -> str:
+        return reverse("mail_inbox")
+
 
 class SetupView(View):
     template_name = "accounts/setup.html"

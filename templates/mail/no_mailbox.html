@@ -1,14 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="utf-8"><title>Mailstead</title></head>
-<body>
-  <h1>No mailbox yet</h1>
-  <p>Your account can sign in, but no mailbox has been assigned.</p>
-  {% if is_staff %}
+{% extends "base.html" %}
+{% block title %}No mailbox — Mailstead{% endblock %}
+{% block body %}
+<main class="app-main app-main--wide">
+  <div class="card">
+    <h1 class="page-title">No mailbox yet</h1>
+    <p>Your account can sign in, but no mailbox has been assigned.</p>
+    {% if is_staff %}
     <p><a href="/admin/accounts/mailbox/add/">Create a mailbox in the admin</a> and link it to your user.</p>
-  {% else %}
+    {% else %}
     <p>Ask an administrator to assign a mailbox to your account.</p>
-  {% endif %}
-  <p><a href="{% url 'logout' %}">Sign out</a></p>
-</body>
-</html>
+    {% endif %}
+    <p><a href="{% url 'logout' %}">Sign out</a></p>
+  </div>
+</main>
+{% endblock %}
