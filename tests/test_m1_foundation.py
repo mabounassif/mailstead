@@ -131,6 +131,22 @@ def test_sessions_invalidated_on_password_reset(bootstrap_token):
 
 
 @pytest.mark.django_db
+def test_logout_post_signs_out_user(bootstrap_token):
+    User = get_user_model()
+    User.objects.create_user(username="u1", password="Complex123!")
+    client = Client()
+    login = client.post(reverse("login"), {"username": "u1", "password": "Complex123!"})
+    assert login.status_code == 302
+    assert client.get(reverse("logout")).status_code == 405
+    logout = client.post(reverse("logout"))
+    assert logout.status_code == 302
+    assert logout.url.endswith("/accounts/login/")
+    inbox = client.get(reverse("mail_inbox"))
+    assert inbox.status_code == 302
+    assert "/login" in inbox.url
+
+
+@pytest.mark.django_db
 def test_disabled_mailbox_cannot_login(bootstrap_token):
     User = get_user_model()
     user = User.objects.create_user(username="u1", password="Complex123!")

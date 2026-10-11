@@ -1,0 +1,4 @@
+<form method="post" action="{% url 'logout' %}" class="logout-form{% if logout_form_class %} {{ logout_form_class }}{% endif %}">
+  {% csrf_token %}
+  <button type="submit" class="logout-form__btn">Sign out</button>
+</form>

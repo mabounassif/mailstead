@@ -10,7 +10,7 @@
     {% else %}
     <p>Ask an administrator to assign a mailbox to your account.</p>
     {% endif %}
-    <p><a href="{% url 'logout' %}">Sign out</a></p>
+    <p>{% include "accounts/_logout_form.html" with logout_form_class="logout-form--link" %}</p>
   </div>
 </main>
 {% endblock %}
