@@ -103,6 +103,31 @@ img {
   color: var(--accent);
 }
 
+.logout-form {
+  display: inline;
+  margin: 0;
+  padding: 0;
+}
+
+.logout-form__btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.logout-form__btn:hover {
+  color: var(--accent);
+}
+
+.logout-form--link .logout-form__btn {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
 .nav-toggle {
   display: none;
   align-items: center;

@@ -28,7 +28,7 @@
           <a href="{% url 'ops_dashboard' %}">Ops</a>
         {% endif %}
         <span class="user-label">{{ user.get_username }}</span>
-        <a href="{% url 'logout' %}">Sign out</a>
+        {% include "accounts/_logout_form.html" %}
       {% endif %}
     </div>
     {% endblock %}
