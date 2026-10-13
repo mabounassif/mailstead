@@ -17,7 +17,7 @@ from mail.compose import reply_all_recipients, send_compose
 from mail.threading import copy_is_outgoing, thread_copies
 from mail.deletion import empty_trash, move_to_trash, purge_message_copy, restore_from_trash
 from accounts.models import Mailbox
-from mail.models import Folder, MessageAttachment, MessageCopy
+from mail.models import Folder, Message, MessageAttachment, MessageCopy
 
 SHA256_RE = re.compile(r"^[a-f0-9]{64}$")
 
