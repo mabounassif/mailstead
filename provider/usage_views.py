@@ -12,4 +12,5 @@ def usage_panel(request):
         return redirect("usage_panel")
     ctx = latest_usage_display()
     ctx["portal_message_count"] = Message.objects.count()
+    ctx["active_nav"] = "ops"
     return render(request, "provider/usage.html", ctx)

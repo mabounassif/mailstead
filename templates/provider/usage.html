@@ -1,18 +1,78 @@
-<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="utf-8"><title>Resend usage</title></head>
-<body>
-  <h1>Resend account totals (all applications on this API key's team)</h1>
+{% extends "mail/base_mail.html" %}
+{% block title %}Resend usage — Mailstead{% endblock %}
+{% block mail_content %}
+{% include "partials/ops_subnav.html" with ops_section="usage" %}
+
+<div class="ops-dashboard">
+  <header class="ops-dashboard__header">
+    <h1 class="ops-dashboard__title">Resend usage</h1>
+    <p class="ops-dashboard__lede">Team-wide API limits for this instance’s Resend key (not per-mailbox).</p>
+  </header>
+
   {% if restricted_key %}
-    <p>Requires Full access API key for usage API.</p>
+  <p class="ops-alert">Usage API needs a full-access API key.</p>
   {% endif %}
+
   {% if snapshot %}
-    <p>Fetched: {{ snapshot.fetched_at }} {% if stale %}(stale/warning){% endif %}</p>
-    {% if not snapshot.ok %}<p>Error: {{ snapshot.error_message }}</p>{% endif %}
-    <pre>{{ snapshot.parsed_json }}</pre>
+  <p class="ops-dashboard__meta">
+    Last fetched {{ snapshot.fetched_at|date:"M j, Y, P" }} UTC
+    {% if stale %}<span class="pill warn">stale</span>{% endif %}
+    {% if not snapshot.ok %}<span class="pill full">error</span>{% endif %}
+  </p>
+  {% if not snapshot.ok and snapshot.error_message %}
+  <p class="ops-alert">{{ snapshot.error_message }}</p>
   {% endif %}
-  <p>Plan: not provided by Resend API{% if plan_label %} — admin-entered label: {{ plan_label }} (not verified){% endif %}</p>
-  <p>Portal-only message count: {{ portal_message_count }} (labelled separately)</p>
-  <form method="post">{% csrf_token %}<button>Refresh</button></form>
-</body>
-</html>
+  {% else %}
+  <p class="ops-section__empty">No usage snapshot yet. Refresh to pull data from Resend.</p>
+  {% endif %}
+
+  {% if periods %}
+  <table class="data-table ops-table">
+    <thead>
+      <tr>
+        <th>Period</th>
+        <th>Used</th>
+        <th>Limit</th>
+        <th>Sent</th>
+        <th>Received</th>
+        <th>Remaining</th>
+        <th>Resets</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in periods %}
+      <tr>
+        <td>{{ row.title }}</td>
+        <td>{{ row.used }}</td>
+        <td>{{ row.limit }}</td>
+        <td>{{ row.sent }}</td>
+        <td>{{ row.received }}</td>
+        <td>{{ row.remaining }}</td>
+        <td>{{ row.resets_at }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  {% if rate_limit %}
+  <section class="ops-section">
+    <h2 class="ops-section__title">Rate limit</h2>
+    <p class="ops-card__meta">{{ rate_limit.limit }} requests per {{ rate_limit.duration }}</p>
+  </section>
+  {% endif %}
+
+  <section class="ops-section">
+    <h2 class="ops-section__title">Portal</h2>
+    <p class="ops-card__meta">{{ portal_message_count }} message record{{ portal_message_count|pluralize }} in this database.</p>
+    {% if plan_label %}
+    <p class="ops-card__hint">Admin plan label (not verified by API): {{ plan_label }}</p>
+    {% endif %}
+  </section>
+
+  <form method="post" class="ops-inline-form">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-primary">Refresh from Resend</button>
+  </form>
+</div>
+{% endblock %}

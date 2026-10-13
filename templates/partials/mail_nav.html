@@ -1,13 +1,32 @@
+<div class="mail-sidebar-backdrop" id="mail-sidebar-backdrop" hidden></div>
 <aside class="mail-sidebar" id="mail-sidebar">
-  <nav aria-label="Mail folders">
-    <a class="nav-compose{% if active_nav == 'compose' %} is-active{% endif %}" href="{% url 'mail_compose' %}">Compose</a>
-    <a href="{% url 'mail_inbox' %}"{% if active_nav == 'inbox' %} class="is-active"{% endif %}>Inbox</a>
+  <a class="sidebar-compose" href="{% url 'mail_compose' %}"{% if active_nav == 'compose' %} aria-current="page"{% endif %}>
+    <svg class="sidebar-compose__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24" aria-hidden="true">
+      <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1.003 1.003 0 0 0 0-1.42l-2.34-2.34a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.82z"/>
+    </svg>
+    <span>Compose</span>
+  </a>
+  <nav class="mail-sidebar__folders" aria-label="Mail folders">
+    <a href="{% url 'mail_inbox' %}" class="mail-sidebar__link{% if active_nav == 'inbox' %} is-active{% endif %}">
+      <span class="mail-sidebar__link-label">Inbox</span>
+      {% if inbox_unread_count %}<span class="mail-sidebar__badge" aria-label="{{ inbox_unread_count }} unread">{{ inbox_unread_count }}</span>{% endif %}
+    </a>
     <a href="{% url 'mail_folder' 'sent' %}"{% if active_nav == 'sent' %} class="is-active"{% endif %}>Sent</a>
     <a href="{% url 'mail_folder' 'drafts' %}"{% if active_nav == 'drafts' %} class="is-active"{% endif %}>Drafts</a>
     <a href="{% url 'mail_folder' 'archive' %}"{% if active_nav == 'archive' %} class="is-active"{% endif %}>Archive</a>
     <a href="{% url 'mail_folder' 'junk' %}"{% if active_nav == 'junk' %} class="is-active"{% endif %}>Junk</a>
     <a href="{% url 'mail_folder' 'trash' %}"{% if active_nav == 'trash' %} class="is-active"{% endif %}>Trash</a>
-    <a href="{% url 'mail_search' %}"{% if active_nav == 'search' %} class="is-active"{% endif %}>Search</a>
-    <a href="{% url 'notifications_settings' %}"{% if active_nav == 'notifications' %} class="is-active"{% endif %}>Notifications</a>
   </nav>
+  <div class="mail-sidebar__footer">
+    <nav class="mail-sidebar__settings" aria-label="Settings">
+      <a href="{% url 'notifications_settings' %}"{% if active_nav == 'notifications' %} class="is-active"{% endif %}>Notifications</a>
+      {% if user.is_staff %}
+      <a href="{% url 'ops_dashboard' %}"{% if active_nav == 'ops' %} class="is-active"{% endif %}>Ops</a>
+      {% endif %}
+    </nav>
+    <div class="mail-sidebar__account">
+      <span class="mail-sidebar__user">{{ user.get_username }}</span>
+      {% include "accounts/_logout_form.html" with logout_form_class="logout-form--sidebar" %}
+    </div>
+  </div>
 </aside>

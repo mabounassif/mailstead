@@ -1,0 +1,8 @@
+<header class="app-header app-header--auth">
+  {% if brand_title %}
+    {% include "partials/app_brand.html" with brand_title=brand_title brand_nolink=brand_nolink %}
+  {% else %}
+    {% url 'login' as brand_href %}
+    {% include "partials/app_brand.html" %}
+  {% endif %}
+</header>

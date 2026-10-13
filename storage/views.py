@@ -39,5 +39,6 @@ def ops_dashboard(request):
             "running_jobs": Job.objects.filter(state=Job.State.RUNNING).count(),
             "worker": worker_health(WorkerHeartbeat.objects.order_by("-updated_at").first()),
             "webhook": webhook_summary(ProviderSettings.objects.first()),
+            "active_nav": "ops",
         },
     )

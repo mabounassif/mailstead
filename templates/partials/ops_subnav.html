@@ -1,0 +1,8 @@
+<nav class="ops-subnav" aria-label="Operations">
+  <a class="ops-subnav__back" href="{% url 'mail_inbox' %}">← Inbox</a>
+  <span class="ops-subnav__links">
+    <a href="{% url 'ops_dashboard' %}"{% if ops_section == 'overview' %} class="is-active"{% endif %}>Overview</a>
+    <a href="{% url 'usage_panel' %}"{% if ops_section == 'usage' %} class="is-active"{% endif %}>Resend usage</a>
+    <a href="/admin/">Django admin</a>
+  </span>
+</nav>

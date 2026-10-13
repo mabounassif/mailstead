@@ -1,4 +1,20 @@
 {% extends "base.html" %}
+{% load static %}
+{% block body_class %}mail-app{% endblock %}
+{% block header %}
+<header class="app-header app-header--mail">
+  <button type="button" class="nav-toggle" id="mail-nav-toggle" aria-expanded="false" aria-controls="mail-sidebar" aria-label="Open menu">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+    </svg>
+  </button>
+  <form class="header-search" method="get" action="{% url 'mail_search' %}" role="search">
+    <label class="header-search__wrap">
+      <input class="header-search__input" type="search" name="q" value="{{ request.GET.q|default:'' }}" placeholder="Search mail" autocomplete="off" aria-label="Search mail">
+    </label>
+  </form>
+</header>
+{% endblock %}
 {% block body %}
 <div class="mail-shell">
   {% include "partials/mail_nav.html" %}
@@ -12,16 +28,16 @@
     {% endif %}
     {% block mail_content %}{% endblock %}
   </main>
+  {% if active_nav != 'compose' and active_nav != 'ops' %}
+  <a class="compose-fab" href="{% url 'mail_compose' %}" aria-label="Compose">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24" aria-hidden="true">
+      <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1.003 1.003 0 0 0 0-1.42l-2.34-2.34a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.82z"/>
+    </svg>
+    <span class="compose-fab__label">Compose</span>
+  </a>
+  {% endif %}
 </div>
-<script>
-(function () {
-  var btn = document.getElementById("mail-nav-toggle");
-  var sidebar = document.getElementById("mail-sidebar");
-  if (!btn || !sidebar) return;
-  btn.addEventListener("click", function () {
-    var open = sidebar.classList.toggle("is-open");
-    btn.setAttribute("aria-expanded", open ? "true" : "false");
-  });
-})();
-</script>
+{% endblock %}
+{% block extra_scripts %}
+<script src="{% static 'mailstead/app.js' %}"></script>
 {% endblock %}
