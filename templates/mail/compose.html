@@ -1,34 +1,41 @@
 {% extends "mail/base_mail.html" %}
-{% block title %}Compose — Mailstead{% endblock %}
+{% block title %}{{ compose_title|default:"Compose" }} — Mailstead{% endblock %}
 {% block mail_content %}
-<div class="compose-overlay" aria-hidden="true"></div>
-<div class="compose-panel" role="dialog" aria-labelledby="compose-title">
-  <div class="compose-panel__header">
-    <h2 id="compose-title" class="compose-panel__title">New message</h2>
-    <a class="compose-panel__close" href="{% url 'mail_inbox' %}" aria-label="Close compose">×</a>
+<div class="mail-pane mail-pane--compose">
+  <div class="compose-panel compose-panel--page" role="region" aria-labelledby="compose-title">
+    <div class="compose-panel__header">
+      <h2 id="compose-title" class="compose-panel__title">{{ compose_title|default:"New message" }}</h2>
+      <a class="compose-panel__close" href="{% if close_href %}{{ close_href }}{% else %}{% url 'mail_inbox' %}{% endif %}" aria-label="Close compose">×</a>
+    </div>
+    <form class="compose-panel__form" method="post">
+      {% csrf_token %}
+      <div class="compose-field">
+        <label for="from">From</label>
+        <input id="from" name="from" value="{{ mailbox.address }}" autocomplete="email">
+      </div>
+      <div class="compose-field">
+        <label for="to">To</label>
+        <input id="to" name="to" value="{{ prefill_to|default:'' }}" placeholder="Recipients" autocomplete="off">
+      </div>
+      {% if prefill_cc %}
+      <div class="compose-field">
+        <label for="cc">Cc</label>
+        <input id="cc" name="cc" value="{{ prefill_cc }}" autocomplete="off">
+      </div>
+      {% endif %}
+      <div class="compose-field">
+        <label for="subject">Subject</label>
+        <input id="subject" name="subject" value="{{ prefill|default:'' }}">
+      </div>
+      <div class="compose-field compose-field--grow">
+        <label for="body" class="visually-hidden">Message</label>
+        <textarea id="body" name="body" rows="10" placeholder="Write your message…">{{ prefill_body|default:'' }}</textarea>
+      </div>
+      <div class="compose-panel__actions">
+        <button type="submit" class="btn btn-primary">Send</button>
+        <a class="btn btn-text" href="{% if close_href %}{{ close_href }}{% else %}{% url 'mail_inbox' %}{% endif %}">Discard</a>
+      </div>
+    </form>
   </div>
-  <form class="compose-panel__form" method="post">
-    {% csrf_token %}
-    <div class="compose-field">
-      <label for="from">From</label>
-      <input id="from" name="from" value="{{ mailbox.address }}" autocomplete="email">
-    </div>
-    <div class="compose-field">
-      <label for="to">To</label>
-      <input id="to" name="to" placeholder="Recipients" autocomplete="off">
-    </div>
-    <div class="compose-field">
-      <label for="subject">Subject</label>
-      <input id="subject" name="subject" value="{{ prefill|default:'' }}">
-    </div>
-    <div class="compose-field compose-field--grow">
-      <label for="body" class="visually-hidden">Message</label>
-      <textarea id="body" name="body" rows="10" placeholder="Write your message…"></textarea>
-    </div>
-    <div class="compose-panel__actions">
-      <button type="submit" class="btn btn-primary">Send</button>
-      <a class="btn btn-text" href="{% url 'mail_inbox' %}">Discard</a>
-    </div>
-  </form>
 </div>
 {% endblock %}

@@ -321,14 +321,30 @@ img {
 
 .mail-sidebar__badge {
   flex-shrink: 0;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.35rem;
+  padding: 0.12rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: 0.01em;
+  color: #001d35;
+  background: #c2e7ff;
   font-variant-numeric: tabular-nums;
+  box-shadow: inset 0 0 0 1px rgba(0, 29, 53, 0.06);
 }
 
 .mail-sidebar__folders a.is-active .mail-sidebar__badge {
-  color: #001d35;
+  color: #fff;
+  background: #001d35;
+  box-shadow: none;
+}
+
+.mail-sidebar__folders a:not(.is-active):hover .mail-sidebar__badge {
+  background: #a8daf8;
 }
 
 .mail-sidebar__folders a:hover,
@@ -407,6 +423,74 @@ a.sidebar-compose[aria-current="page"] {
   min-width: 0;
   padding: 0.5rem 1rem 2rem;
   max-width: 100%;
+}
+
+.mail-pane {
+  margin: -0.5rem -1rem 0;
+  background: var(--surface);
+  min-height: calc(100vh - var(--header-h) - 0.5rem);
+}
+
+.mail-pane--list .message-list {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.mail-list-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 1rem;
+  min-height: 3rem;
+  padding: 0.35rem 1rem;
+  border-bottom: 1px solid #f1f3f4;
+}
+
+.mail-list-toolbar__title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 400;
+  color: var(--text);
+}
+
+.mail-list-toolbar__subtitle {
+  margin: 0;
+  flex: 1 1 100%;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.mail-list-toolbar__actions {
+  margin-left: auto;
+}
+
+.mail-list-toolbar__pager {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: auto;
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.mail-list-toolbar__pager-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.mail-list-toolbar__pager-btn:hover {
+  background: rgba(60, 64, 67, 0.08);
+  color: var(--text);
+  text-decoration: none;
 }
 
 .mail-list-header {
@@ -492,11 +576,11 @@ a.sidebar-compose[aria-current="page"] {
 
 .message-row {
   display: grid;
-  grid-template-columns: 11rem minmax(0, 1fr) 4.5rem;
-  gap: 0 1rem;
+  grid-template-columns: 12rem minmax(0, 1fr) 4.5rem;
+  gap: 0 0.75rem;
   align-items: center;
-  padding: 0.35rem 1rem;
-  min-height: 2.5rem;
+  padding: 0.2rem 1rem;
+  min-height: 2.75rem;
   color: inherit;
   text-decoration: none;
 }
@@ -563,29 +647,50 @@ a.sidebar-compose[aria-current="page"] {
   color: var(--muted);
 }
 
-/* —— Compose panel —— */
+/* —— Compose (full main panel) —— */
 
-.compose-overlay {
-  position: fixed;
-  inset: var(--header-h) 0 0 0;
-  z-index: 30;
-  background: rgba(32, 33, 36, 0.2);
-  pointer-events: none;
+.mail-pane--compose {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - var(--header-h) - 0.5rem);
+}
+
+.compose-panel--page {
+  position: static;
+  z-index: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: hidden;
 }
 
 .compose-panel {
-  position: fixed;
-  z-index: 40;
-  right: 1.5rem;
-  bottom: 0;
-  width: min(36rem, calc(100vw - 2rem));
-  max-height: calc(100vh - var(--header-h) - 1rem);
   display: flex;
   flex-direction: column;
   background: var(--surface);
-  border-radius: var(--radius) var(--radius) 0 0;
-  box-shadow: var(--shadow-compose);
   overflow: hidden;
+}
+
+.mail-pane--compose .compose-panel__form {
+  flex: 1;
+  min-height: 0;
+}
+
+.mail-pane--compose .compose-field--grow {
+  flex: 1;
+  align-items: stretch;
+  min-height: 12rem;
+}
+
+.mail-pane--compose .compose-field--grow textarea {
+  flex: 1;
+  min-height: 18rem;
 }
 
 .compose-panel__header {
@@ -672,7 +777,319 @@ a.sidebar-compose[aria-current="page"] {
   padding-top: 0.75rem;
 }
 
-/* —— Message detail —— */
+/* —— Message detail (Gmail-style) —— */
+
+.message-view {
+  max-width: 52rem;
+}
+
+.message-view__toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.35rem 0.5rem;
+  border-bottom: 1px solid #f1f3f4;
+  margin: 0 -0.5rem;
+}
+
+.message-view__tool,
+.message-view__tool-form .message-view__tool {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.message-view__tool:hover,
+.message-view__tool-form .message-view__tool:hover {
+  background: rgba(60, 64, 67, 0.08);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.message-view__tool-form {
+  display: inline;
+  margin: 0;
+}
+
+.message-view__toolbar-sep {
+  width: 1px;
+  height: 1.5rem;
+  margin: 0 0.35rem;
+  background: #e8eaed;
+}
+
+.message-view__thread {
+  padding: 1.25rem 1rem 1.5rem;
+}
+
+.message-view__subject {
+  margin: 0 0 1.25rem;
+  font-size: 1.35rem;
+  font-weight: 400;
+  line-height: 1.35;
+  color: var(--text);
+}
+
+.message-view__meta {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.75rem 1rem;
+  align-items: start;
+}
+
+.message-view__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: #1a73e8;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.message-view__from-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem;
+  line-height: 1.4;
+}
+
+.message-view__sender-name {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.message-view__sender-email {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.message-view__to-line {
+  margin-top: 0.15rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.message-view__to-label {
+  margin-right: 0.35rem;
+}
+
+.message-view__date {
+  font-size: 0.75rem;
+  color: var(--muted);
+  white-space: nowrap;
+  text-align: right;
+}
+
+.message-view__attachments {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0.65rem 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.message-view__attachments li {
+  padding: 0.2rem 0;
+}
+
+.message-view__attachment-size {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.message-view__body {
+  padding-top: 0.5rem;
+}
+
+.message-frame--inline {
+  border: none;
+  border-radius: 0;
+  min-height: 12rem;
+}
+
+.message-body-pre--inline {
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.message-view__load-images {
+  margin: 0.75rem 0 0;
+  font-size: 0.85rem;
+}
+
+.thread-reply {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #f1f3f4;
+}
+
+.thread-reply__panel {
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  padding: 0.85rem 1rem 1rem;
+  background: #f8f9fa;
+}
+
+.thread-reply__field {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+  margin-bottom: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.thread-reply__field-label {
+  flex: 0 0 2rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.thread-reply__field-value {
+  min-width: 0;
+  color: var(--text);
+  word-break: break-word;
+}
+
+.thread-reply__body {
+  display: block;
+  width: 100%;
+  min-height: 6rem;
+  margin: 0.35rem 0 0.75rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid #dadce0;
+  border-radius: 0.5rem;
+  font: inherit;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  resize: vertical;
+  background: var(--surface);
+}
+
+.thread-reply__body:focus {
+  outline: 2px solid #aecbfa;
+  outline-offset: 1px;
+  border-color: var(--accent);
+}
+
+.thread-reply__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.65rem;
+}
+
+.thread-reply__expand {
+  margin-left: auto;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.thread-reply__expand:hover {
+  text-decoration: underline;
+}
+
+.thread-reply__mode[aria-pressed="true"] {
+  background: rgba(26, 115, 232, 0.1);
+  color: var(--accent);
+}
+
+.thread-reply__trigger {
+  width: 100%;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.message-reply-actions .message-reply-actions__btn {
+  border: none;
+  cursor: pointer;
+  font: inherit;
+}
+
+.message-reply-box {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 1.25rem;
+  color: var(--muted);
+  text-decoration: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.message-reply-box:hover {
+  border-color: #c4c7c5;
+  box-shadow: 0 1px 2px rgba(60, 64, 67, 0.12);
+  text-decoration: none;
+  color: var(--muted);
+}
+
+.message-reply-box__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: #e8f0fe;
+  color: #1a73e8;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.message-reply-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.message-reply-actions__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-decoration: none;
+  background: var(--surface);
+}
+
+.message-reply-actions__btn:hover {
+  background: #f6f8fc;
+  text-decoration: none;
+  color: var(--text);
+}
+
+.message-reply-actions__btn svg {
+  color: var(--muted);
+}
 
 .page-title {
   margin: 0 0 1rem;
@@ -1320,10 +1737,6 @@ dl.stats dd {
     display: none;
   }
 
-  .mail-shell.nav-closed .compose-fab {
-    display: inline-flex;
-  }
-
   .message-row {
     grid-template-columns: 14rem minmax(0, 1fr) 5rem;
   }
@@ -1360,12 +1773,6 @@ dl.stats dd {
     display: none;
   }
 
-  .compose-panel {
-    right: 0;
-    left: 0;
-    width: auto;
-    margin: 0 auto;
-  }
 }
 
 @media (max-width: 480px) {

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from email.utils import parseaddr
 
 from django import template
 from django.utils import timezone
@@ -28,6 +29,42 @@ def mail_list_date(value: datetime | None) -> str:
 @register.filter
 def message_sort_time(message, copy) -> datetime | None:
     return message.sent_at or copy.created_at
+
+
+@register.filter
+def mail_display_name(address: str) -> str:
+    name, addr = parseaddr(address or "")
+    if name:
+        return name
+    if addr:
+        local = addr.split("@", 1)[0]
+        return local or addr
+    return "(unknown)"
+
+
+@register.filter
+def mail_address_only(address: str) -> str:
+    _, addr = parseaddr(address or "")
+    return addr or (address or "").strip()
+
+
+@register.filter
+def mail_avatar_initial(address: str) -> str:
+    name, addr = parseaddr(address or "")
+    label = name or (addr.split("@", 1)[0] if addr else "")
+    label = (label or "?").strip()
+    return label[0].upper()
+
+
+@register.filter
+def mail_message_datetime(value: datetime | None) -> str:
+    if value is None:
+        return ""
+    if timezone.is_naive(value):
+        value = timezone.make_aware(value, timezone.get_current_timezone())
+    local = timezone.localtime(value)
+    hour = int(local.strftime("%I"))
+    return f"{local.strftime('%a, %b')} {local.day}, {local.year} at {hour}:{local.strftime('%M %p')}"
 
 
 @register.filter

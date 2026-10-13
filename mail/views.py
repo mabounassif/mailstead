@@ -9,6 +9,7 @@ from django.db import models
 from django.db.models.functions import Coalesce
 from django.http import FileResponse, Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 
 from django.views.decorators.http import require_POST
 
@@ -37,6 +38,42 @@ def _mailbox(request: HttpRequest) -> Mailbox:
     if notice is not None:
         raise Http404()
     return mailbox
+
+
+def _reply_recipient_context(copy: MessageCopy, mailbox: Mailbox) -> dict[str, str]:
+    msg = copy.message
+    to_list, cc_list, _bcc = reply_all_recipients(copy, mailbox)
+    return {
+        "reply_to_address": msg.reply_to or msg.from_address,
+        "reply_all_to": ", ".join(to_list),
+        "reply_all_cc": ", ".join(cc_list),
+        "reply_subject": f"Re: {msg.subject}",
+    }
+
+
+def _compose_reply_render(
+    request: HttpRequest,
+    copy: MessageCopy,
+    mailbox: Mailbox,
+    *,
+    title: str,
+    prefill_to: str,
+    prefill_cc: str = "",
+) -> HttpResponse:
+    rctx = _reply_recipient_context(copy, mailbox)
+    return render(
+        request,
+        "mail/compose.html",
+        {
+            "mailbox": mailbox,
+            "prefill": rctx["reply_subject"],
+            "prefill_to": prefill_to,
+            "prefill_cc": prefill_cc,
+            "compose_title": title,
+            "close_href": reverse("mail_message", args=[copy.id]),
+            "active_nav": copy.folder,
+        },
+    )
 
 
 @login_required
@@ -95,6 +132,9 @@ def message_detail(request: HttpRequest, copy_id: int) -> HttpResponse:
     if copy.is_unread:
         copy.is_unread = False
         copy.save(update_fields=["is_unread"])
+    compose_mode = request.GET.get("compose", "")
+    if compose_mode not in ("reply", "reply-all"):
+        compose_mode = ""
     return render(
         request,
         "mail/message.html",
@@ -105,6 +145,10 @@ def message_detail(request: HttpRequest, copy_id: int) -> HttpResponse:
             "bcc_for_view": copy.bcc_snapshot,
             "attachments": msg.attachments.all(),
             "active_nav": copy.folder,
+            "mailbox": mailbox,
+            "can_reply": copy.folder != Folder.TRASH,
+            "compose_mode": compose_mode,
+            **_reply_recipient_context(copy, mailbox),
         },
     )
 
@@ -169,12 +213,18 @@ def reply(request: HttpRequest, copy_id: int) -> HttpResponse:
             in_reply_to=msg.message_id,
             references=msg.message_id,
         )
+        messages.success(request, "Reply queued.")
         return redirect("mail_message", copy_id=copy.id)
-    return render(
-        request,
-        "mail/compose.html",
-        {"mailbox": mailbox, "prefill": f"Re: {msg.subject}", "active_nav": "compose"},
-    )
+    if request.GET.get("full") == "1":
+        rctx = _reply_recipient_context(copy, mailbox)
+        return _compose_reply_render(
+            request,
+            copy,
+            mailbox,
+            title="Reply",
+            prefill_to=rctx["reply_to_address"],
+        )
+    return redirect(f"{reverse('mail_message', args=[copy_id])}?compose=reply")
 
 
 @login_required
@@ -194,8 +244,19 @@ def reply_all(request: HttpRequest, copy_id: int) -> HttpResponse:
             in_reply_to=copy.message.message_id,
             references=copy.message.message_id,
         )
+        messages.success(request, "Reply queued.")
         return redirect("mail_message", copy_id=copy.id)
-    return render(request, "mail/compose.html", {"mailbox": mailbox, "active_nav": "compose"})
+    if request.GET.get("full") == "1":
+        rctx = _reply_recipient_context(copy, mailbox)
+        return _compose_reply_render(
+            request,
+            copy,
+            mailbox,
+            title="Reply all",
+            prefill_to=rctx["reply_all_to"],
+            prefill_cc=rctx["reply_all_cc"],
+        )
+    return redirect(f"{reverse('mail_message', args=[copy_id])}?compose=reply-all")
 
 
 @login_required

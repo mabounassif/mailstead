@@ -1,0 +1,69 @@
+{% load mail_extras %}
+<section
+  class="thread-reply"
+  id="thread-reply"
+  aria-label="Reply"
+  data-compose-mode="{{ compose_mode }}"
+  data-reply-url="{% url 'mail_reply' copy.id %}"
+  data-reply-to="{{ reply_to_address }}"
+  data-reply-all-url="{% url 'mail_reply_all' copy.id %}"
+  data-reply-all-to="{{ reply_all_to }}"
+  data-reply-all-cc="{{ reply_all_cc }}"
+  data-full-reply-url="{% url 'mail_reply' copy.id %}?full=1"
+  data-full-reply-all-url="{% url 'mail_reply_all' copy.id %}?full=1"
+>
+  <div class="thread-reply__collapsed" id="thread-reply-collapsed">
+    <button type="button" class="message-reply-box thread-reply__trigger" id="thread-reply-trigger">
+      <span class="message-reply-box__avatar" aria-hidden="true">{{ message.from_address|mail_avatar_initial }}</span>
+      <span class="message-reply-box__hint">Reply to {{ message.from_address|mail_display_name }}…</span>
+    </button>
+    <div class="message-reply-actions">
+      <button type="button" class="message-reply-actions__btn" data-open-reply="reply">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true"><path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/></svg>
+        Reply
+      </button>
+      <button type="button" class="message-reply-actions__btn" data-open-reply="reply-all">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true"><path d="M7 8V5l-7 7 7 7v-3l-4-4 4-4zm6 1V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/></svg>
+        Reply all
+      </button>
+      {% if copy.folder == 'junk' %}
+      <a class="message-reply-actions__btn" href="{% url 'mail_not_junk' copy.id %}">Not junk</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="thread-reply__panel" id="thread-reply-panel" hidden>
+    <form
+      method="post"
+      action="{% url 'mail_reply' copy.id %}"
+      id="thread-reply-form"
+      class="thread-reply__form"
+    >
+      {% csrf_token %}
+      <div class="thread-reply__field" id="thread-reply-to-row">
+        <span class="thread-reply__field-label">To</span>
+        <span class="thread-reply__field-value" id="thread-reply-to-value">{{ reply_to_address }}</span>
+      </div>
+      <div class="thread-reply__field" id="thread-reply-cc-row" hidden>
+        <span class="thread-reply__field-label">Cc</span>
+        <span class="thread-reply__field-value">{{ reply_all_cc }}</span>
+      </div>
+      <label class="visually-hidden" for="thread-reply-body">Your reply</label>
+      <textarea
+        id="thread-reply-body"
+        name="body"
+        class="thread-reply__body"
+        rows="5"
+        placeholder="Write your reply…"
+        required
+      ></textarea>
+      <div class="thread-reply__toolbar">
+        <button type="submit" class="btn btn-primary">Send</button>
+        <button type="button" class="btn btn-text thread-reply__mode" data-mode="reply" aria-pressed="true">Reply</button>
+        <button type="button" class="btn btn-text thread-reply__mode" data-mode="reply-all" aria-pressed="false">Reply all</button>
+        <a class="thread-reply__expand" id="thread-reply-expand" href="{% url 'mail_reply' copy.id %}?full=1">Open full compose</a>
+        <button type="button" class="btn btn-text thread-reply__cancel" id="thread-reply-cancel">Discard</button>
+      </div>
+    </form>
+  </div>
+</section>
