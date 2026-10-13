@@ -2,11 +2,13 @@
 {% block title %}Search — Mailstead{% endblock %}
 {% block mail_content %}
 {% if q %}
-<div class="mail-list-header">
-  <h1 class="mail-list-header__title">Search results</h1>
-  <p class="mail-list-header__meta">“{{ q }}”</p>
+<div class="mail-pane mail-pane--list">
+  <div class="mail-list-toolbar">
+    <h1 class="mail-list-toolbar__title">Search results</h1>
+    <p class="mail-list-toolbar__subtitle">“{{ q }}”</p>
+  </div>
+  {% include "partials/message_list.html" with empty_message="No matching messages." %}
 </div>
-{% include "partials/message_list.html" with empty_message="No matching messages." %}
 {% else %}
 <p class="search-hint">Use the search box in the header to find messages.</p>
 {% endif %}

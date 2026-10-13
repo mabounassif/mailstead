@@ -78,5 +78,6 @@
   {% endif %}
 {% endblock %}
 {% block extra_scripts %}
+{{ block.super }}
 <script src="{% static 'mailstead/push.js' %}"></script>
 {% endblock %}

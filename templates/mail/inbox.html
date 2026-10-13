@@ -1,21 +1,27 @@
 {% extends "mail/base_mail.html" %}
 {% block title %}{{ folder|title }} — Mailstead{% endblock %}
 {% block mail_content %}
-<div class="mail-list-header">
-  <h1 class="mail-list-header__title">{{ folder|title }}</h1>
-  {% if folder == 'trash' %}
-  <form method="post" action="{% url 'mail_empty_trash' %}" class="mail-list-header__action">
-    {% csrf_token %}
-    <button type="submit" class="btn btn-text">Empty trash</button>
-  </form>
-  {% endif %}
+<div class="mail-pane mail-pane--list">
+  <div class="mail-list-toolbar">
+    <h1 class="mail-list-toolbar__title">{{ folder|title }}</h1>
+    {% if folder == 'trash' %}
+    <form method="post" action="{% url 'mail_empty_trash' %}" class="mail-list-toolbar__actions">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-text btn-sm">Empty trash</button>
+    </form>
+    {% endif %}
+    {% if page.has_other_pages %}
+    <nav class="mail-list-toolbar__pager" aria-label="Message list pagination">
+      {% if page.has_previous %}
+      <a class="mail-list-toolbar__pager-btn" href="?page={{ page.previous_page_number }}" aria-label="Newer messages">‹</a>
+      {% endif %}
+      <span class="mail-list-toolbar__pager-range">{{ page.start_index }}–{{ page.end_index }}</span>
+      {% if page.has_next %}
+      <a class="mail-list-toolbar__pager-btn" href="?page={{ page.next_page_number }}" aria-label="Older messages">›</a>
+      {% endif %}
+    </nav>
+    {% endif %}
+  </div>
+  {% include "partials/message_list.html" %}
 </div>
-{% include "partials/message_list.html" %}
-{% if page.has_other_pages %}
-<p class="list-pagination">
-  Page {{ page.number }} of {{ page.paginator.num_pages }}
-  {% if page.has_previous %} · <a href="?page={{ page.previous_page_number }}">Newer</a>{% endif %}
-  {% if page.has_next %} · <a href="?page={{ page.next_page_number }}">Older</a>{% endif %}
-</p>
-{% endif %}
 {% endblock %}
