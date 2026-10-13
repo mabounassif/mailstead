@@ -26,6 +26,8 @@ class Message(models.Model):
     blob = models.ForeignKey(Blob, on_delete=models.PROTECT, null=True, blank=True)
     resend_email_id = models.CharField(max_length=128, blank=True, default="", db_index=True)
     message_id = models.CharField(max_length=255, blank=True, default="", db_index=True)
+    in_reply_to = models.CharField(max_length=255, blank=True, default="", db_index=True)
+    references_text = models.TextField(blank=True, default="")
     subject = models.CharField(max_length=998, blank=True, default="")
     from_address = models.CharField(max_length=320, blank=True, default="")
     to_index = models.TextField(blank=True, default="")
