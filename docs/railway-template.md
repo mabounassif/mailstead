@@ -35,7 +35,7 @@ All template variables must have a **description** in the composer. Defaults and
 ## Branding
 
 - **Template card + service icon:** replace `core/static/mailstead/icon-source.jpg`, then `python scripts/render_app_icons.py` (requires Pillow).
-- **Screenshots** for the marketplace readme: `python scripts/seed_demo_screenshots.py` then `python scripts/capture_template_screenshots.py` (requires `playwright`; dev server on port 18765).
+- **Screenshots** for the marketplace readme and GitHub README: `python scripts/capture_template_screenshots.py` (installs nothing itself; needs `pip install -e ".[screenshots]"` and `playwright install chromium`). The script seeds demo mail, starts a temporary server, and writes `docs/assets/screenshots/{login,inbox,compose}.png`.
 
 ## Maintainer sync
 
