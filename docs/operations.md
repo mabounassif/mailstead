@@ -1,5 +1,7 @@
 # Operations
 
+Day-two notes for a running Mailstead instance. First-time deploy: [Railway](deploy-railway.md). Local setup: [development](development.md).
+
 ## Backups
 
 Use Railway volume backups plus `python manage.py export` (JSON dump of configuration and metadata).

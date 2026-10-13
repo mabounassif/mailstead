@@ -4,11 +4,11 @@ Mailstead is a self-hosted webmail portal for small teams. [Resend](https://rese
 
 ## Screenshots
 
-![Sign in](https://raw.githubusercontent.com/mabounassif/mailstead/main/docs/assets/screenshots/login.png)
+<img src="https://raw.githubusercontent.com/mabounassif/mailstead/main/docs/assets/screenshots/inbox.png" alt="Inbox" />
 
-![Inbox](https://raw.githubusercontent.com/mabounassif/mailstead/main/docs/assets/screenshots/inbox.png)
+<img src="https://raw.githubusercontent.com/mabounassif/mailstead/main/docs/assets/screenshots/compose.png" alt="Compose" />
 
-![Compose](https://raw.githubusercontent.com/mabounassif/mailstead/main/docs/assets/screenshots/compose.png)
+<img src="https://raw.githubusercontent.com/mabounassif/mailstead/main/docs/assets/screenshots/login.png" alt="Sign in" />
 
 ## About Hosting
 
@@ -43,7 +43,7 @@ Generated at deploy: `SECRET_KEY`, `APP_ENCRYPTION_KEY`, `BOOTSTRAP_TOKEN`. Opti
 ## First deploy
 
 1. Deploy and wait until **healthcheck** passes (`/healthz` recommended on Railway).
-2. Open `https://<your-domain>/setup/<BOOTSTRAP_TOKEN>` once (token is in service variables).
+2. Open `https://YOUR_DOMAIN/setup/BOOTSTRAP_TOKEN` once (token is in service variables).
 3. Create users and mailboxes in **Admin** (`/admin/`).
 4. Configure Resend DNS for `MAIL_DOMAIN` and register webhooks (scheduled job or admin).
 
