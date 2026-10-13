@@ -76,11 +76,15 @@ def create_outbound(mailbox, payload: dict, outbound_uuid=None) -> OutboundMessa
             payload_json=payload,
             idempotency_key=key,
         )
+        headers = payload.get("headers") or {}
         msg = Message.objects.create(
             subject=payload.get("subject", ""),
             from_address=payload.get("from", mailbox.address),
             to_index=",".join(payload.get("to") or []),
             cc_index=",".join(payload.get("cc") or []),
+            message_id=str(headers.get("Message-ID") or ""),
+            in_reply_to=str(headers.get("In-Reply-To") or ""),
+            references_text=str(headers.get("References") or ""),
             archived=True,
             portal_tag=str(key),
         )

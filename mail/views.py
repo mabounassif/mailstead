@@ -14,10 +14,10 @@ from django.urls import reverse
 from django.views.decorators.http import require_POST
 
 from mail.compose import reply_all_recipients, send_compose
+from mail.threading import copy_is_outgoing, thread_copies
 from mail.deletion import empty_trash, move_to_trash, purge_message_copy, restore_from_trash
-from mail.html_safety import sanitize_html
 from accounts.models import Mailbox
-from mail.models import Folder, MessageAttachment, MessageCopy
+from mail.models import Folder, Message, MessageAttachment, MessageCopy
 
 SHA256_RE = re.compile(r"^[a-f0-9]{64}$")
 
@@ -38,6 +38,48 @@ def _mailbox(request: HttpRequest) -> Mailbox:
     if notice is not None:
         raise Http404()
     return mailbox
+
+
+def _message_html_body(msg: Message, *, load_images: bool) -> str:
+    if not msg.blob_id or msg.unretrievable:
+        return ""
+    import email
+    from email import policy
+
+    from mail.html_safety import sanitize_html
+
+    raw = open(msg.blob.path, "rb").read()
+    mime = email.message_from_bytes(raw, policy=policy.default)
+    part = mime.get_body(preferencelist=("html",))
+    if not part:
+        return ""
+    html_body = sanitize_html(part.get_content() or "")
+    if load_images:
+        html_body = sanitize_html(html_body, allow_remote_images=True)
+    return html_body
+
+
+def _thread_items(
+    anchor: MessageCopy,
+    mailbox: Mailbox,
+    *,
+    load_images: bool,
+) -> list[dict]:
+    items: list[dict] = []
+    for thread_copy in thread_copies(anchor):
+        msg = thread_copy.message
+        items.append(
+            {
+                "copy": thread_copy,
+                "message": msg,
+                "html_body": _message_html_body(msg, load_images=load_images),
+                "attachments": list(msg.attachments.all()),
+                "bcc_for_view": thread_copy.bcc_snapshot,
+                "is_outgoing": copy_is_outgoing(thread_copy, mailbox),
+                "is_anchor": thread_copy.id == anchor.id,
+            }
+        )
+    return items
 
 
 def _reply_recipient_context(copy: MessageCopy, mailbox: Mailbox) -> dict[str, str]:
@@ -117,18 +159,13 @@ def message_detail(request: HttpRequest, copy_id: int) -> HttpResponse:
     mailbox = _mailbox(request)
     copy = get_object_or_404(MessageCopy, pk=copy_id, mailbox=mailbox)
     msg = copy.message
+    load_images = request.GET.get("load_images") == "1"
+    thread = _thread_items(copy, mailbox, load_images=load_images)
     html_body = ""
-    if msg.blob_id and not msg.unretrievable:
-        import email
-        from email import policy
-
-        raw = open(msg.blob.path, "rb").read()
-        mime = email.message_from_bytes(raw, policy=policy.default)
-        part = mime.get_body(preferencelist=("html",))
-        if part:
-            html_body = sanitize_html(part.get_content() or "")
-    if request.GET.get("load_images") == "1" and html_body:
-        html_body = sanitize_html(html_body, allow_remote_images=True)
+    for item in thread:
+        if item["is_anchor"]:
+            html_body = item["html_body"]
+            break
     if copy.is_unread:
         copy.is_unread = False
         copy.save(update_fields=["is_unread"])
@@ -141,6 +178,7 @@ def message_detail(request: HttpRequest, copy_id: int) -> HttpResponse:
         {
             "copy": copy,
             "message": msg,
+            "thread": thread,
             "html_body": html_body,
             "bcc_for_view": copy.bcc_snapshot,
             "attachments": msg.attachments.all(),

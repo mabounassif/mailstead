@@ -10,6 +10,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from mail.blobs import write_blob
+from mail.email_headers import parse_thread_headers
 from mail.filtering import folder_for_inbound
 from mail.models import Folder, Message, MessageAttachment, MessageCopy, UnroutedMessage
 from mail.routing import resolve_recipients
@@ -80,6 +81,7 @@ def ingest_inbound(email_id: str, webhook_meta: dict | None = None, *, notify: b
     api_attachments = meta.get("attachments") or []
     _validate_attachment_sizes(raw_bytes, api_attachments)
 
+    thread_headers = parse_thread_headers(raw_bytes)
     primary = recipients[0]
     with reserve_inbound_bytes(primary, len(raw_bytes)):
         with transaction.atomic():
@@ -87,7 +89,9 @@ def ingest_inbound(email_id: str, webhook_meta: dict | None = None, *, notify: b
             msg = Message.objects.create(
                 blob=blob,
                 resend_email_id=email_id,
-                message_id=meta.get("message_id") or "",
+                message_id=thread_headers["message_id"] or meta.get("message_id") or "",
+                in_reply_to=thread_headers["in_reply_to"],
+                references_text=thread_headers["references"],
                 subject=meta.get("subject") or "",
                 from_address=_from(meta),
                 to_index=_join_addresses(meta.get("to")),

@@ -33,47 +33,17 @@
     </div>
 
     <article class="message-view__thread">
-      <header class="message-view__header">
+      <header class="message-view__thread-head">
         <h1 class="message-view__subject">{{ message.subject|default:"(no subject)" }}</h1>
-        <div class="message-view__meta">
-          <div class="message-view__avatar" aria-hidden="true">{{ message.from_address|mail_avatar_initial }}</div>
-          <div class="message-view__addresses">
-            <div class="message-view__from-line">
-              <span class="message-view__sender-name">{{ message.from_address|mail_display_name }}</span>
-              <span class="message-view__sender-email">&lt;{{ message.from_address|mail_address_only }}&gt;</span>
-            </div>
-            <div class="message-view__to-line">
-              <span class="message-view__to-label">to</span>
-              {% if copy.folder == 'sent' %}
-              <span class="message-view__to-value">{{ message.to_index|default:"(no recipient)" }}</span>
-              {% else %}
-              <span class="message-view__to-value">me</span>
-              {% endif %}
-              {% if bcc_for_view %}<span class="message-view__bcc"> · bcc: {{ bcc_for_view }}</span>{% endif %}
-            </div>
-          </div>
-          <time class="message-view__date" datetime="{{ message.sent_at|date:'c' }}">{{ message|message_sort_time:copy|mail_message_datetime }}</time>
-        </div>
+        {% if thread|length > 1 %}
+        <p class="message-view__thread-count">{{ thread|length }} messages</p>
+        {% endif %}
       </header>
 
-      {% if attachments %}
-      <ul class="message-view__attachments">
-        {% for att in attachments %}
-        <li>
-          <a href="{% url 'mail_attachment' copy.id att.id %}">{{ att.filename }}</a>
-          <span class="message-view__attachment-size">({{ att.size_bytes }} bytes)</span>
-        </li>
+      <div class="message-view__thread-messages">
+        {% for item in thread %}
+        {% include "partials/thread_message.html" %}
         {% endfor %}
-      </ul>
-      {% endif %}
-
-      <div class="message-view__body">
-        {% if html_body %}
-        <iframe class="message-frame message-frame--inline" sandbox="" title="Message body" srcdoc="{{ html_body|escape }}"></iframe>
-        <p class="message-view__load-images"><a href="?load_images=1">Load remote images</a></p>
-        {% else %}
-        <pre class="message-body-pre message-body-pre--inline">{{ message.body_text_index }}</pre>
-        {% endif %}
       </div>
 
       {% if can_reply %}
