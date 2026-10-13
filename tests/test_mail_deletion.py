@@ -68,6 +68,8 @@ def test_trash_link_moves_message():
     copy = MessageCopy.objects.create(message=msg, mailbox=mb, folder=Folder.INBOX)
     client = Client()
     client.post("/accounts/login/", {"username": "u1", "password": "x"})
-    client.get(f"/mail/m/{copy.id}/trash/")
+    resp = client.get(f"/mail/m/{copy.id}/trash/", follow=False)
     copy.refresh_from_db()
     assert copy.folder == Folder.TRASH
+    assert resp.status_code == 302
+    assert resp.url == "/mail/"

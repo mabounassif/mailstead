@@ -46,18 +46,41 @@ def _maybe_alerts(parsed: dict) -> None:
                 UsageAlert.objects.get_or_create(quota=period, period_key=resets, threshold=th)
 
 
+def usage_period_rows(parsed: dict) -> list[dict]:
+    rows: list[dict] = []
+    for key, title in (("daily", "Daily"), ("monthly", "Monthly")):
+        block = parsed.get(key) or {}
+        rows.append(
+            {
+                "key": key,
+                "title": title,
+                "used": block.get("used"),
+                "limit": block.get("limit"),
+                "sent": block.get("sent"),
+                "received": block.get("received"),
+                "remaining": block.get("remaining"),
+                "resets_at": block.get("resets_at"),
+            }
+        )
+    return rows
+
+
 def latest_usage_display() -> dict:
     snap = UsageSnapshot.objects.order_by("-fetched_at").first()
     if not snap:
-        return {"status": "unknown"}
+        return {"status": "unknown", "periods": [], "rate_limit": None}
     age = timezone.now() - snap.fetched_at
     label = AdminSubscriptionLabel.objects.first()
+    parsed = snap.parsed_json if snap.ok else {}
+    rate = (parsed.get("rate_limit") or {}) if isinstance(parsed, dict) else {}
     return {
         "snapshot": snap,
         "age_seconds": int(age.total_seconds()),
         "stale": not snap.ok or age.total_seconds() > settings.USAGE_REFRESH_MINUTES * 60,
         "plan_label": label.label if label else None,
         "restricted_key": "restricted" in (snap.error_message or "").lower(),
+        "periods": usage_period_rows(parsed) if isinstance(parsed, dict) else [],
+        "rate_limit": rate,
     }
 
 

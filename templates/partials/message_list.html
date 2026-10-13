@@ -1,0 +1,22 @@
+{% load mail_extras %}
+<ul class="message-list">
+  {% for copy in page %}
+  <li class="message-list__item{% if copy.is_unread %} is-unread{% endif %}">
+    <a class="message-row" href="{% url 'mail_message' copy.id %}">
+      <span class="message-row__sender">{{ copy.message|message_list_sender:folder }}</span>
+      <span class="message-row__subject">
+        <span class="message-row__subject-text">{{ copy.message.subject|default:"(no subject)" }}</span>
+        {% message_snippet copy.message as snippet %}
+        {% if snippet %}
+        <span class="message-row__snippet"> — {{ snippet }}</span>
+        {% endif %}
+      </span>
+      <span class="message-row__date">{{ copy.message|message_sort_time:copy|mail_list_date }}</span>
+    </a>
+  </li>
+  {% empty %}
+  <li class="message-list__empty">
+    <p class="empty-state">{{ empty_message|default:"No messages in this folder." }}</p>
+  </li>
+  {% endfor %}
+</ul>

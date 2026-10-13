@@ -1,7 +1,9 @@
 {% extends "mail/base_mail.html" %}
 {% block title %}{{ message.subject|default:"Message" }} — Mailstead{% endblock %}
 {% block mail_content %}
-<h1 class="page-title">{{ message.subject|default:"(no subject)" }}</h1>
+<div class="mail-list-header">
+  <h1 class="mail-list-header__title">{{ message.subject|default:"(no subject)" }}</h1>
+</div>
 <p class="lede">From: {{ message.from_address }}</p>
 {% if bcc_for_view %}<p class="lede">BCC: {{ bcc_for_view }}</p>{% endif %}
 <div class="toolbar">

@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db import models
+from django.db.models.functions import Coalesce
 from django.http import FileResponse, Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
@@ -43,7 +44,12 @@ def inbox(request: HttpRequest) -> HttpResponse:
     mailbox, notice = _mailbox_or_notice(request)
     if notice is not None:
         return notice
-    qs = MessageCopy.objects.filter(mailbox=mailbox, folder=Folder.INBOX).select_related("message")
+    qs = (
+        MessageCopy.objects.filter(mailbox=mailbox, folder=Folder.INBOX)
+        .select_related("message")
+        .annotate(sort_at=Coalesce("message__sent_at", "created_at"))
+        .order_by("-sort_at")
+    )
     paginator = Paginator(qs, 25)
     page = paginator.get_page(request.GET.get("page"))
     return render(
@@ -58,7 +64,12 @@ def folder_view(request: HttpRequest, folder: str) -> HttpResponse:
     if folder not in Folder.values:
         raise Http404()
     mailbox = _mailbox(request)
-    qs = MessageCopy.objects.filter(mailbox=mailbox, folder=folder).select_related("message")
+    qs = (
+        MessageCopy.objects.filter(mailbox=mailbox, folder=folder)
+        .select_related("message")
+        .annotate(sort_at=Coalesce("message__sent_at", "created_at"))
+        .order_by("-sort_at")
+    )
     paginator = Paginator(qs, 25)
     page = paginator.get_page(request.GET.get("page"))
     return render(request, "mail/inbox.html", {"page": page, "folder": folder, "active_nav": folder})
@@ -110,9 +121,16 @@ def search(request: HttpRequest) -> HttpResponse:
             | models.Q(message__body_text_index__icontains=q)
             | models.Q(message__to_index__icontains=q)
         )
+        qs = qs.annotate(sort_at=Coalesce("message__sent_at", "created_at")).order_by("-sort_at")
+    else:
+        qs = qs.none()
     paginator = Paginator(qs, 25)
     page = paginator.get_page(request.GET.get("page"))
-    return render(request, "mail/search.html", {"page": page, "q": q, "active_nav": "search"})
+    return render(
+        request,
+        "mail/search.html",
+        {"page": page, "q": q, "folder": Folder.INBOX, "active_nav": ""},
+    )
 
 
 @login_required
@@ -198,12 +216,21 @@ def mark_not_junk(request: HttpRequest, copy_id: int) -> HttpResponse:
     return redirect("mail_message", copy_id=copy.id)
 
 
+def _redirect_to_folder(folder: str) -> HttpResponse:
+    if folder == Folder.INBOX:
+        return redirect("mail_inbox")
+    return redirect("mail_folder", folder=folder)
+
+
 @login_required
 def trash_message(request: HttpRequest, copy_id: int) -> HttpResponse:
     mailbox = _mailbox(request)
     copy = get_object_or_404(MessageCopy, pk=copy_id, mailbox=mailbox)
+    source_folder = copy.folder
     move_to_trash(copy)
-    return redirect("mail_folder", folder=Folder.TRASH)
+    if source_folder == Folder.TRASH:
+        return redirect("mail_folder", folder=Folder.TRASH)
+    return _redirect_to_folder(source_folder)
 
 
 @login_required

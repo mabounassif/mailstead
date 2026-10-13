@@ -22,10 +22,7 @@ def mailbox_usage_rows(limit: int = 50) -> list[dict]:
     for ms in MailboxStorage.objects.select_related("mailbox").order_by("-charged_bytes")[:limit]:
         quota = ms.mailbox.quota_bytes
         charged = ms.charged_bytes
-        if quota > 0:
-            percent = min(100.0, 100.0 * charged / quota)
-        else:
-            percent = 0.0
+        percent = round(100.0 * charged / quota, 1) if quota > 0 else 0.0
         rows.append(
             {
                 "address": ms.mailbox.address,
