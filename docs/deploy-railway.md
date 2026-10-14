@@ -17,7 +17,7 @@ If you are not using the template:
 
 1. Create a service from this repo’s Dockerfile.
 2. Attach a volume at `/data`.
-3. Start command: `python -m mailstead.run`
+3. Start command: `python -m mailstead.run` (migrates, then execs one gunicorn worker; jobs run in that process)
 4. Health check path: `/healthz` (liveness) or `/readyz` (includes worker heartbeat)
 5. Set `RAILWAY_DEPLOYMENT_DRAINING_SECONDS=30`
 6. Set `PUBLIC_URL=https://${RAILWAY_PUBLIC_DOMAIN}` (the template does this for you)
