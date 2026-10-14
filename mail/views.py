@@ -13,11 +13,12 @@ from django.urls import reverse
 
 from django.views.decorators.http import require_POST
 
+from mail.chats import contact_chats, contact_key, contact_messages, counterparty, detach_catchall, group_messages
 from mail.compose import reply_all_recipients, send_compose
 from mail.threading import copy_is_outgoing, thread_copies
 from mail.deletion import empty_trash, move_to_trash, purge_message_copy, restore_from_trash
 from accounts.models import Mailbox
-from mail.models import Folder, Message, MessageAttachment, MessageCopy
+from mail.models import Folder, Message, MessageAttachment, MessageCopy, Project
 
 SHA256_RE = re.compile(r"^[a-f0-9]{64}$")
 
@@ -126,18 +127,85 @@ def inbox(request: HttpRequest) -> HttpResponse:
     mailbox, notice = _mailbox_or_notice(request)
     if notice is not None:
         return notice
-    qs = (
-        MessageCopy.objects.filter(mailbox=mailbox, folder=Folder.INBOX)
-        .select_related("message")
-        .annotate(sort_at=Coalesce("message__sent_at", "created_at"))
-        .order_by("-sort_at")
-    )
-    paginator = Paginator(qs, 25)
-    page = paginator.get_page(request.GET.get("page"))
+    detach_catchall(mailbox)
+    if request.GET.get("new") == "1":
+        return _new_chat(request, mailbox)
+    selected = None
+    raw_project = request.GET.get("project")
+    if raw_project and raw_project.isdigit():
+        selected = Project.objects.filter(mailbox=mailbox, pk=int(raw_project)).first()
+    contact_address = (request.GET.get("contact") or "").strip()
+    if selected is not None:
+        mode = "group"
+        chats = group_messages(mailbox, selected)
+        contact_label = ""
+    elif contact_address:
+        mode = "contact"
+        contact_label, chats = contact_messages(mailbox, contact_address)
+        if not chats:
+            contact_label = contact_address
+    else:
+        mode = "contacts"
+        chats = contact_chats(mailbox)
+        contact_label = ""
+    reply_copy = chats[-1]["copy"] if mode != "contacts" and chats else None
     return render(
         request,
-        "mail/inbox.html",
-        {"page": page, "folder": Folder.INBOX, "active_nav": Folder.INBOX},
+        "mail/chats.html",
+        {
+            "folder": Folder.INBOX,
+            "active_nav": Folder.INBOX,
+            "selected_project": selected,
+            "mode": mode,
+            "chats": chats,
+            "contact_label": contact_label,
+            "contact_address": contact_key(contact_address) if contact_address else "",
+            "reply_copy": reply_copy,
+        },
+    )
+
+
+def _new_chat(request: HttpRequest, mailbox) -> HttpResponse:
+    draft_to = ""
+    draft_body = ""
+    if request.method == "POST":
+        draft_body = (request.POST.get("body") or "").strip()
+        draft_to = (request.POST.get("to") or "").strip()
+        recipients = [part.strip() for part in draft_to.split(",") if part.strip()]
+        if not draft_body:
+            messages.error(request, "Write a message first.")
+        elif not recipients:
+            messages.info(request, "Destination is still unspecified.")
+        else:
+            subject = draft_body.split("\n", 1)[0][:120] or "Message"
+            try:
+                send_compose(
+                    mailbox,
+                    from_address=mailbox.address,
+                    to=recipients,
+                    subject=subject,
+                    text=draft_body,
+                )
+                messages.success(request, "Message queued.")
+                return redirect(f"{reverse('mail_inbox')}?contact={contact_key(recipients[0])}")
+            except Exception as exc:
+                messages.error(request, str(exc))
+    return render(
+        request,
+        "mail/chats.html",
+        {
+            "folder": Folder.INBOX,
+            "active_nav": Folder.INBOX,
+            "selected_project": None,
+            "mode": "new",
+            "new_message": True,
+            "chats": [],
+            "contact_label": "",
+            "contact_address": "",
+            "reply_copy": None,
+            "draft_to": draft_to,
+            "draft_body": draft_body,
+        },
     )
 
 
@@ -145,6 +213,8 @@ def inbox(request: HttpRequest) -> HttpResponse:
 def folder_view(request: HttpRequest, folder: str) -> HttpResponse:
     if folder not in Folder.values:
         raise Http404()
+    if folder in (Folder.SENT, Folder.DRAFTS, Folder.ARCHIVE):
+        return redirect("mail_inbox")
     mailbox = _mailbox(request)
     qs = (
         MessageCopy.objects.filter(mailbox=mailbox, folder=folder)
@@ -175,17 +245,36 @@ def message_detail(request: HttpRequest, copy_id: int) -> HttpResponse:
     compose_mode = request.GET.get("compose", "")
     if compose_mode not in ("reply", "reply-all"):
         compose_mode = ""
+    who = counterparty(msg, mailbox.address)
+    thread_contact = "" if copy.project_id else contact_key(who)
+    if copy.folder in (Folder.SENT, Folder.DRAFTS, Folder.ARCHIVE, Folder.INBOX):
+        back_url = reverse("mail_inbox")
+        if copy.project_id:
+            back_url = f"{back_url}?project={copy.project_id}"
+            back_label = copy.project.name
+        else:
+            back_url = f"{back_url}?contact={thread_contact}"
+            back_label = "Messages"
+    else:
+        back_url = reverse("mail_folder", args=[copy.folder])
+        back_label = copy.get_folder_display()
     return render(
         request,
         "mail/message.html",
         {
             "copy": copy,
             "message": msg,
+            "back_url": back_url,
+            "back_label": back_label,
             "thread": thread,
             "html_body": html_body,
             "bcc_for_view": copy.bcc_snapshot,
             "attachments": msg.attachments.all(),
-            "active_nav": copy.folder,
+            "active_nav": Folder.INBOX
+            if copy.folder in (Folder.INBOX, Folder.SENT, Folder.DRAFTS, Folder.ARCHIVE)
+            else copy.folder,
+            "selected_project": copy.project if copy.project_id else None,
+            "contact_address": thread_contact,
             "mailbox": mailbox,
             "can_reply": copy.folder != Folder.TRASH,
             "compose_mode": compose_mode,
@@ -233,7 +322,7 @@ def compose(request: HttpRequest) -> HttpResponse:
                 text=request.POST.get("body", ""),
             )
             messages.success(request, "Message queued.")
-            return redirect("mail_folder", folder="sent")
+            return redirect("mail_inbox")
         except Exception as exc:
             messages.error(request, str(exc))
     return render(request, "mail/compose.html", {"mailbox": mailbox, "active_nav": "compose"})

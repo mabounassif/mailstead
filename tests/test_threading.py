@@ -115,8 +115,5 @@ def test_message_page_renders_intertwined_thread():
     assert "Hi" in html
     assert "Hello back" in html
     assert "2 messages" in html
-    assert "thread-message--collapsible is-collapsed" in html
+    assert "chat-bubble" in html
     assert "thread-message--last" in html
-    assert "is-expanded" in html
-    assert 'aria-expanded="false"' in html
-    assert 'aria-expanded="true"' in html

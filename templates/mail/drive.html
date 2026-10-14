@@ -1,0 +1,29 @@
+{% extends "mail/base_mail.html" %}
+{% block title %}Data — Mailstead{% endblock %}
+{% block mail_content %}
+<div class="mail-pane mail-pane--list workspace-page">
+  <div class="mail-list-toolbar">
+    <h1 class="mail-list-toolbar__title">Data</h1>
+    <p class="mail-list-toolbar__subtitle">Files stored on this device. {{ disk_used }} used · {{ disk_free }} free of {{ disk_total }}.</p>
+  </div>
+  <ul class="workspace-list">
+    {% for file in files %}
+    <li class="workspace-list__item">
+      <div class="workspace-list__main">
+        <span class="workspace-list__title">{{ file.name }}</span>
+        <span class="workspace-list__meta">{{ file.subject }} · {{ file.size }}</span>
+      </div>
+      {% if file.local %}
+      <span class="workspace-pill">Local</span>
+      {% else %}
+      <span class="workspace-pill workspace-pill--muted">Missing</span>
+      {% endif %}
+    </li>
+    {% empty %}
+    <li class="workspace-list__empty">
+      <p class="empty-state">No files stored on this device yet. Attachments from your mail show up here.</p>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}

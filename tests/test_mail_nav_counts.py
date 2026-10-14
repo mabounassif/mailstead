@@ -42,5 +42,5 @@ def test_inbox_nav_shows_unread_badge():
     client.post("/accounts/login/", {"username": "u1", "password": "x"})
     resp = client.get("/mail/")
     assert resp.status_code == 200
-    assert 'class="mail-sidebar__badge"' in resp.content.decode()
+    assert 'class="rail-btn__badge"' in resp.content.decode()
     assert ">1</span>" in resp.content.decode() or ">1<" in resp.content.decode()
