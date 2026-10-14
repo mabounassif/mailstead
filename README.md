@@ -93,6 +93,14 @@ docker compose up --build
 
 Publishing or customizing the marketplace template: [Railway template composer](docs/railway-template.md).
 
+## Marketing site
+
+The public site for mailstead.app is a separate static build in [`marketing/`](marketing/README.md). It does not serve the webmail app.
+
+```bash
+cd marketing && npm install && npm run build && npm run check
+```
+
 ## Documentation
 
 | Doc | For |

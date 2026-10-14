@@ -1,0 +1,277 @@
+---
+import Base from "../layouts/Base.astro";
+import { site } from "../data/pricing.mjs";
+
+const software = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "Mailstead",
+  applicationCategory: "BusinessApplication",
+  operatingSystem: "Web",
+  url: site.url,
+  license: "https://opensource.org/license/mit",
+  isAccessibleForFree: true,
+  description:
+    "Self-hosted webmail for a custom domain. Mailstead stores mailbox data; Resend transports mail.",
+};
+const org = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "Mailstead",
+  url: site.url,
+  sameAs: [site.repo],
+};
+---
+
+<Base
+  title="Self-hosted webmail for your custom domain"
+  description="Mailstead is a self-hosted inbox for small teams. Deploy one Docker service, connect a domain through Resend, and keep mailbox data on your volume."
+  path="/"
+>
+  <Fragment slot="head">
+    <script type="application/ld+json" set:html={JSON.stringify(software)} />
+    <script type="application/ld+json" set:html={JSON.stringify(org)} />
+  </Fragment>
+
+  <section class="wrap hero">
+    <div>
+      <p class="fine">Your team’s email. One service. No mail server to babysit.</p>
+      <h1>Self-hosted webmail for your custom domain.</h1>
+      <p class="lede">
+        Mailstead gives small teams a familiar inbox, backed by Resend. Deploy one Docker service on Railway, connect your domain, and keep mailbox data on your own persistent volume.
+      </p>
+      <div class="actions">
+        <a class="button button-primary" href={site.deploy} data-track="deploy">Deploy on Railway</a>
+        <a class="button button-secondary" href={site.repo} data-track="github">View on GitHub</a>
+      </div>
+      <p class="fine">MIT licence. You still verify DNS, create mailboxes, and watch provider quotas.</p>
+    </div>
+    <figure class="shot">
+      <img
+        src="/images/inbox.png"
+        width="2560"
+        height="1600"
+        alt="Mailstead inbox showing fictional messages from Alice Chen, Mailstead Ops, Acme Billing, and HR."
+      />
+      <figcaption>Demo inbox with fictional mail. Your deployed instance uses your own domain.</figcaption>
+    </figure>
+  </section>
+
+  <section class="section" id="fit">
+    <div class="wrap">
+      <h2>Who it is for</h2>
+      <div class="grid-2">
+        <div class="panel">
+          <h3>A fit</h3>
+          <p>
+            Developers, indie founders, and small teams who want <code>you@yourdomain</code> and are comfortable running one web application. The project is aimed at roughly 10–50 people. That range is a design target, not a published load test.
+          </p>
+        </div>
+        <div class="panel">
+          <h3>A mismatch</h3>
+          <p>
+            Teams that need Outlook or Thunderbird over IMAP, a full office suite, compliance archive, or a vendor-operated mailbox. Mailstead is the webmail application. It is not a managed email host and it does not include a mail server.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="features">
+    <div class="wrap">
+      <h2>What you get on day one</h2>
+      <div class="grid-2">
+        <div class="panel">
+          <h3>Inbox work</h3>
+          <p>
+            Inbox, Sent, Drafts, Archive, Junk, and Trash. Compose, reply, forward, attachments, and search. Local filter rules can file mail, and a DMARC failure can route a message to Junk. That is not a commercial spam service.
+          </p>
+        </div>
+        <div class="panel">
+          <h3>Mailbox administration</h3>
+          <p>
+            Create the first admin with a one-time bootstrap token, then add users and mailboxes in Admin. Each mailbox has a quota. The default in the data model is 250 MB until you change it.
+          </p>
+        </div>
+        <div class="panel">
+          <h3>Storage and provider usage</h3>
+          <p>
+            An operations dashboard at <code>/ops/</code> shows storage, the worker, and webhooks. A Resend usage panel records quota snapshots. When the volume is full, overflow can keep metadata while Resend may still hold the original.
+          </p>
+        </div>
+        <div class="panel">
+          <h3>Installable app, optional push</h3>
+          <p>
+            The site can be installed as a web app. Web Push runs only after you set VAPID keys. There is no IMAP or POP3 service in the default deployment.
+          </p>
+        </div>
+      </div>
+      <figure class="shot" style="margin-top:1rem">
+        <img
+          src="/images/compose.png"
+          width="2560"
+          height="1600"
+          alt="Mailstead compose window with an empty message on the demo domain."
+          loading="lazy"
+        />
+        <figcaption>Compose on the same demo instance. Addresses in screenshots are fictional.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="section" id="how">
+    <div class="wrap">
+      <h2>How setup actually goes</h2>
+      <ol class="steps">
+        <li>
+          <strong>Deploy one service.</strong> The Railway template starts this repo’s Docker image, attaches a volume at <code>/data</code>, and generates app secrets. Wait until <code>/healthz</code> passes.
+        </li>
+        <li>
+          <strong>Open bootstrap once.</strong> Visit <code>/setup/&lt;BOOTSTRAP_TOKEN&gt;</code> and create the first admin. The token is a service variable, not a public link you should share.
+        </li>
+        <li>
+          <strong>Verify the domain in Resend.</strong> Add the DNS records Resend asks for. Point <code>MAIL_DOMAIN</code> at that domain. This step is yours; the template does not finish DNS for you.
+        </li>
+        <li>
+          <strong>Confirm inbound webhooks.</strong> With a public <code>PUBLIC_URL</code>, Mailstead registers a Resend webhook. Create mailboxes, then send and receive a real message before you call it done.
+        </li>
+      </ol>
+      <p class="fine">Prerequisites: a Resend API key, a domain you can edit DNS for, and a Railway project. Postgres and Web Push are optional.</p>
+    </div>
+  </section>
+
+  <section class="section" id="architecture">
+    <div class="wrap">
+      <h2>Where mail lives</h2>
+      <p class="lede">
+        Mailstead is the application and the mailbox store. Resend is the external transport. Messages pass through Resend on the way in and out, so “mail never leaves your server” would be false.
+      </p>
+      <svg class="arch" viewBox="0 0 760 220" role="img" aria-labelledby="arch-title arch-desc">
+        <title id="arch-title">Mailstead architecture</title>
+        <desc id="arch-desc">
+          People use a browser to reach the Mailstead application. The application stores mail on a persistent volume. Resend sends and receives mail with the public internet and notifies Mailstead by webhook.
+        </desc>
+        <rect x="20" y="70" width="160" height="72" rx="12" fill="#fffdf8" stroke="#e4d9c6" />
+        <text x="100" y="102" text-anchor="middle" fill="#1c1917" font-size="15">Browser</text>
+        <text x="100" y="122" text-anchor="middle" fill="#57534e" font-size="12">your team</text>
+        <rect x="280" y="48" width="200" height="116" rx="12" fill="#e7eeff" stroke="#1e4ed8" />
+        <text x="380" y="92" text-anchor="middle" fill="#1c1917" font-size="16">Mailstead</text>
+        <text x="380" y="114" text-anchor="middle" fill="#57534e" font-size="12">webmail + jobs</text>
+        <text x="380" y="134" text-anchor="middle" fill="#57534e" font-size="12">SQLite or Postgres</text>
+        <rect x="560" y="70" width="180" height="72" rx="12" fill="#fffdf8" stroke="#e4d9c6" />
+        <text x="650" y="102" text-anchor="middle" fill="#1c1917" font-size="15">Resend</text>
+        <text x="650" y="122" text-anchor="middle" fill="#57534e" font-size="12">send and receive</text>
+        <path d="M180 106 H280" stroke="#1c1917" stroke-width="1.5" />
+        <path d="M480 106 H560" stroke="#1c1917" stroke-width="1.5" />
+        <text x="380" y="196" text-anchor="middle" fill="#57534e" font-size="13">Persistent volume at /data for the database and mail blobs</text>
+      </svg>
+      <p>
+        The default stack is one container. Background jobs run in that process. There is no Redis, Celery, or Postfix service to keep alive. Optional <code>DATABASE_URL</code> switches the database to Postgres.
+      </p>
+    </div>
+  </section>
+
+  <section class="section" id="pricing-preview">
+    <div class="wrap">
+      <h2>The bill has four parts</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Part</th>
+              <th>What you pay</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Mailstead software</td>
+              <td>$0 under the MIT licence</td>
+            </tr>
+            <tr>
+              <td>Hosting</td>
+              <td>Railway Hobby is $5/month and includes $5 of usage. Usage above that credit is extra.</td>
+            </tr>
+            <tr>
+              <td>Mail transport</td>
+              <td>Resend Free is $0 for 3,000 emails/month and 100/day. Received mail counts toward that quota.</td>
+            </tr>
+            <tr>
+              <td>Domain</td>
+              <td>Your registrar’s renewal. A custom domain is also required by hosted suites.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p><a href="/pricing/">Open the cost model and calculator</a>. Figures are estimates from vendor pages checked on 2026-10-14, in USD.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <h2>Compare it with the obvious alternatives</h2>
+      <div class="grid-2">
+        <a class="panel card-link" href="/compare/mailstead-vs-google-workspace/">
+          <h3>Google Workspace</h3>
+          <p>Business Starter is a suite, not just a mailbox. Mailstead does not replace Docs, Meet, or Drive.</p>
+        </a>
+        <a class="panel card-link" href="/compare/mailstead-vs-microsoft-365/">
+          <h3>Microsoft 365</h3>
+          <p>Exchange Online Plan 1 and Business Basic are different products. Don’t price them as one thing.</p>
+        </a>
+        <a class="panel card-link" href="/compare/mailstead-vs-zoho-mail/">
+          <h3>Zoho Mail</h3>
+          <p>Zoho sells hosted mailboxes, including a limited free plan. Mailstead sells you nothing and leaves hosting to you.</p>
+        </a>
+        <a class="panel card-link" href="/compare/mailstead-vs-mailcow/">
+          <h3>mailcow</h3>
+          <p>Choose mailcow when you need your own SMTP and IMAP stack. Choose Mailstead when you do not.</p>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="faq">
+    <div class="wrap">
+      <h2>Questions worth answering before you deploy</h2>
+      <details open>
+        <summary>Does this still depend on Resend?</summary>
+        <p>Yes. Outbound mail uses the Resend API. Inbound mail arrives through Resend webhooks. If Resend is down, over quota, or misconfigured, delivery stops even if your container is healthy.</p>
+      </details>
+      <details>
+        <summary>What does self-hosted mean here?</summary>
+        <p>You run the Mailstead application and you hold the mailbox database and blobs. You do not run the public mail servers. Resend does that transport, and Railway (or another host) runs the container.</p>
+      </details>
+      <details>
+        <summary>What is the total cost?</summary>
+        <p>Add software ($0), hosting, Resend, the domain, backups you choose, and your time. A team that already pays for Railway may have a smaller <em>extra</em> bill than a new account. See <a href="/pricing/">pricing</a>.</p>
+      </details>
+      <details>
+        <summary>Can I use Thunderbird or Outlook?</summary>
+        <p>Not as IMAP or POP3 clients against Mailstead. Those protocols are not part of the default app. Use the browser, or the installed web app.</p>
+      </details>
+      <details>
+        <summary>Do I get notifications?</summary>
+        <p>Only if you configure Web Push with VAPID keys. Push is optional. It is not on until those keys exist.</p>
+      </details>
+      <details>
+        <summary>How do backups work?</summary>
+        <p>The operations guide recommends Railway volume backups plus <code>python manage.py export</code>. That export is portal metadata, not the mail blobs. You still need a plan for the volume itself.</p>
+      </details>
+      <details>
+        <summary>How large a team?</summary>
+        <p>About 10–50 users is the intended audience. There is no published benchmark that this size has been load-tested. Message volume, not the headcount, decides whether you fit Resend’s free quota.</p>
+      </details>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap panel">
+      <h2>Deploy the app. Keep the mailbox.</h2>
+      <p>The template creates the service and the volume. You still verify the domain, create mailboxes, and send a test message.</p>
+      <div class="actions">
+        <a class="button button-primary" href={site.deploy} data-track="deploy">Deploy on Railway</a>
+        <a class="button button-secondary" href="/guides/deploy-mailstead-on-railway/">Read the deploy guide</a>
+      </div>
+    </div>
+  </section>
+</Base>

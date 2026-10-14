@@ -1,0 +1,32 @@
+---
+import Base from "../../layouts/Base.astro";
+import { articles } from "../../data/manifest.mjs";
+
+const items = articles.filter((article) => article.section === "guides");
+---
+
+<Base
+  title="Mailstead guides"
+  description="Guides on custom-domain email cost, deploying Mailstead on Railway, and using Resend as transport for a team inbox."
+  path="/guides/"
+>
+  <section class="section">
+    <div class="wrap">
+      <h1>Guides</h1>
+      <p class="lede">
+        Practical notes for choosing and running Mailstead. Comparisons live under <a href="/compare/">Compare</a>.
+      </p>
+      <div class="grid-2">
+        {
+          items.map((article) => (
+            <a class="panel card-link" href={`/guides/${article.slug}/`}>
+              <h2>{article.title}</h2>
+              <p>{article.description}</p>
+              <p class="fine">Updated {article.updated}</p>
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+</Base>

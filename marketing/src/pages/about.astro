@@ -1,0 +1,31 @@
+---
+import Base from "../layouts/Base.astro";
+import { site } from "../data/pricing.mjs";
+---
+
+<Base
+  title="About Mailstead"
+  description="Mailstead is an MIT-licensed webmail application maintained by mabounassif. It stores mail for a team and uses Resend for transport."
+  path="/about/"
+>
+  <section class="section">
+    <div class="wrap prose">
+      <h1>About</h1>
+      <p>
+        Mailstead is a self-hosted webmail application for a custom domain. It is aimed at developers and small teams who will run one service and do not want to run a mail server. The software is released under the MIT licence by <a href={site.repo}>{site.author}</a>.
+      </p>
+      <p>
+        The public site at mailstead.app describes the project. It does not host your mailbox. Each deployment has its own origin. Screenshots on this site use fictional demo mail.
+      </p>
+      <p>
+        Product behavior is defined by the <a href={site.repo}>repository</a>, not by this website. The <a href={`${site.repo}/blob/main/ROADMAP.md`}>roadmap</a> lists ideas that are not shipped. Security reports go to <a href={site.security}>private advisories</a>, not to a public issue.
+      </p>
+      <h2>What this site will not claim</h2>
+      <ul>
+        <li>No customer counts, testimonials, or review scores.</li>
+        <li>No guarantee of delivery, uptime, or a finished load test at 10–50 users.</li>
+        <li>No statement that mail stays only on your server. Resend transports it.</li>
+      </ul>
+    </div>
+  </section>
+</Base>
