@@ -105,9 +105,14 @@ def thread_copies(anchor: MessageCopy) -> list[MessageCopy]:
     else:
         copies = []
 
-    copies = _dedupe_copies(copies)
-    if len(copies) <= 1:
-        copies = _dedupe_copies(_subject_fallback_copies(anchor, mailbox))
+    id_copies = _dedupe_copies(copies)
+    subject_copies = _dedupe_copies(_subject_fallback_copies(anchor, mailbox))
+    if len(subject_copies) > len(id_copies):
+        copies = subject_copies
+    elif id_copies:
+        copies = id_copies
+    else:
+        copies = subject_copies or [anchor]
 
     copies.sort(key=lambda c: c.message.sent_at or c.created_at)
     return copies

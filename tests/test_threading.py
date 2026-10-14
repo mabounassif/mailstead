@@ -51,6 +51,42 @@ def test_thread_links_inbound_and_sent_by_message_id():
 
 
 @pytest.mark.django_db
+def test_thread_merges_same_subject_when_headers_miss_a_message():
+    User = get_user_model()
+    user = User.objects.create_user("u1", password="x")
+    mb = Mailbox.objects.create(user=user, address="me@mail.test")
+    t0 = timezone.now() - timedelta(hours=2)
+    t1 = timezone.now() - timedelta(hours=1)
+    t2 = timezone.now()
+    first = Message.objects.create(
+        subject="Hi",
+        from_address="me@mail.test",
+        sent_at=t0,
+        body_text_index="This is a test",
+    )
+    MessageCopy.objects.create(message=first, mailbox=mb, folder=Folder.SENT)
+    second = Message.objects.create(
+        subject="Re: Hi",
+        from_address="other@example.com",
+        message_id="<b@example.com>",
+        in_reply_to="<missing@example.com>",
+        sent_at=t1,
+        body_text_index="It works",
+    )
+    second_copy = MessageCopy.objects.create(message=second, mailbox=mb, folder=Folder.INBOX)
+    third = Message.objects.create(
+        subject="Re: Hi",
+        from_address="me@mail.test",
+        sent_at=t2,
+        body_text_index="Awesome",
+    )
+    MessageCopy.objects.create(message=third, mailbox=mb, folder=Folder.SENT)
+
+    copies = thread_copies(second_copy)
+    assert len(copies) == 3
+
+
+@pytest.mark.django_db
 def test_message_page_renders_intertwined_thread():
     User = get_user_model()
     user = User.objects.create_user("u1", password="x")
@@ -79,3 +115,8 @@ def test_message_page_renders_intertwined_thread():
     assert "Hi" in html
     assert "Hello back" in html
     assert "2 messages" in html
+    assert "thread-message--collapsible is-collapsed" in html
+    assert "thread-message--last" in html
+    assert "is-expanded" in html
+    assert 'aria-expanded="false"' in html
+    assert 'aria-expanded="true"' in html

@@ -169,6 +169,82 @@
     }
   }
 
+  function resizeMessageFrame(frame) {
+    try {
+      var doc = frame.contentDocument;
+      if (!doc || !doc.documentElement) return;
+      var height = Math.max(
+        doc.documentElement.scrollHeight,
+        doc.body ? doc.body.scrollHeight : 0
+      );
+      if (height > 0) {
+        frame.style.height = height + "px";
+      }
+    } catch (err) {
+      /* sandbox or cross-origin */
+    }
+  }
+
+  function bindMessageFrame(frame) {
+    if (frame.dataset.frameBound === "1") return;
+    frame.dataset.frameBound = "1";
+    frame.addEventListener("load", function () {
+      resizeMessageFrame(frame);
+    });
+    if (frame.contentDocument && frame.contentDocument.readyState === "complete") {
+      resizeMessageFrame(frame);
+    }
+  }
+
+  function ensureMessageFrameLoaded(frame) {
+    var pending = frame.getAttribute("data-srcdoc");
+    if (pending && !frame.getAttribute("srcdoc")) {
+      frame.setAttribute("srcdoc", pending);
+      frame.removeAttribute("data-srcdoc");
+      bindMessageFrame(frame);
+      return;
+    }
+    bindMessageFrame(frame);
+    resizeMessageFrame(frame);
+  }
+
+  function initMessageFrames() {
+    document.querySelectorAll(".message-frame").forEach(ensureMessageFrameLoaded);
+  }
+
+  function initThreadMessages() {
+    document.querySelectorAll(".thread-message--collapsible").forEach(function (msg) {
+      var toggle = msg.querySelector(".thread-message__toggle");
+      var panel = msg.querySelector(".thread-message__expandable");
+      if (!toggle || !panel) return;
+
+      function setExpanded(expanded) {
+        msg.classList.toggle("is-collapsed", !expanded);
+        msg.classList.toggle("is-expanded", expanded);
+        toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+        panel.hidden = !expanded;
+        if (expanded) {
+          panel.querySelectorAll(".message-frame").forEach(ensureMessageFrameLoaded);
+        }
+      }
+
+      toggle.addEventListener("click", function () {
+        if (msg.classList.contains("is-collapsed")) {
+          setExpanded(true);
+          return;
+        }
+        if (!msg.classList.contains("thread-message--last")) {
+          setExpanded(false);
+        }
+      });
+    });
+
+    var anchor = document.querySelector(".thread-message--anchor.is-collapsed");
+    if (anchor) {
+      anchor.scrollIntoView({ block: "nearest" });
+    }
+  }
+
   function initComposeDraft() {
     var textarea = document.getElementById("body");
     if (!textarea || textarea.value) return;
@@ -186,6 +262,8 @@
   function init() {
     initMailNav();
     initThreadReply();
+    initThreadMessages();
+    initMessageFrames();
     initComposeModal();
     initComposeDraft();
   }

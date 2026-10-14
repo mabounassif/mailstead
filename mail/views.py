@@ -46,7 +46,7 @@ def _message_html_body(msg: Message, *, load_images: bool) -> str:
     import email
     from email import policy
 
-    from mail.html_safety import sanitize_html
+    from mail.html_safety import sanitize_html, wrap_html_for_iframe
 
     raw = open(msg.blob.path, "rb").read()
     mime = email.message_from_bytes(raw, policy=policy.default)
@@ -56,7 +56,7 @@ def _message_html_body(msg: Message, *, load_images: bool) -> str:
     html_body = sanitize_html(part.get_content() or "")
     if load_images:
         html_body = sanitize_html(html_body, allow_remote_images=True)
-    return html_body
+    return wrap_html_for_iframe(html_body)
 
 
 def _thread_items(
@@ -79,6 +79,9 @@ def _thread_items(
                 "is_anchor": thread_copy.id == anchor.id,
             }
         )
+    count = len(items)
+    for index, item in enumerate(items):
+        item["starts_expanded"] = count <= 1 or index == count - 1
     return items
 
 
