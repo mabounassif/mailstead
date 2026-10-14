@@ -1,46 +1,22 @@
-import os
 import signal
-import time
-from concurrent.futures import ThreadPoolExecutor
+import threading
 
 from django.core.management.base import BaseCommand
-from django.utils import timezone
 
-from jobs.models import WorkerHeartbeat
-from jobs.queue import claim_next, worker_owner
-from jobs.worker_runtime import _run_job, _tick_schedules
-
-_shutdown = False
-
-
-def _handle_sigterm(*_args):
-    global _shutdown
-    _shutdown = True
+from jobs.worker_runtime import run_worker_loop
 
 
 class Command(BaseCommand):
     help = "Background job worker."
 
     def handle(self, *args, **options):
-        signal.signal(signal.SIGTERM, _handle_sigterm)
-        signal.signal(signal.SIGINT, _handle_sigterm)
-        pid = os.getpid()
-        owner = worker_owner()
-        self.stdout.write(f"Worker started pid={pid} owner={owner}")
+        shutdown = threading.Event()
 
-        # Register job handlers
-        import mail.jobs  # noqa: F401
-        import provider.jobs  # noqa: F401
-        import storage.jobs  # noqa: F401
-        import notifications.jobs  # noqa: F401
+        def _handle_signal(*_args):
+            shutdown.set()
 
-        with ThreadPoolExecutor(max_workers=2) as pool:
-            while not _shutdown:
-                WorkerHeartbeat.objects.update_or_create(pk=1, defaults={"pid": pid})
-                _tick_schedules()
-                job = claim_next(owner)
-                if job:
-                    pool.submit(_run_job, job)
-                else:
-                    time.sleep(1)
+        signal.signal(signal.SIGTERM, _handle_signal)
+        signal.signal(signal.SIGINT, _handle_signal)
+        self.stdout.write("Worker started")
+        run_worker_loop(shutdown)
         self.stdout.write("Worker shutting down")

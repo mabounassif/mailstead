@@ -71,7 +71,7 @@ docker compose --profile postgres up postgres
 docker compose up --build
 ```
 
-The image runs `python -m mailstead.run` (gunicorn + worker) with a volume at `/data`.
+The image runs `python -m mailstead.run` with a volume at `/data`. That command migrates, then replaces itself with gunicorn (one worker, four threads). The job loop runs inside that worker. Local `runserver` still needs a separate `python manage.py worker`.
 
 ## Project layout
 
@@ -79,7 +79,7 @@ The image runs `python -m mailstead.run` (gunicorn + worker) with a volume at `/
 |------|------------|
 | `accounts/` | Login, bootstrap setup, mailboxes |
 | `mail/` | Folders, compose, inbound/outbound, search |
-| `jobs/` | In-process job queue and `manage.py worker` |
+| `jobs/` | DB-backed job queue; in-process under gunicorn, or `manage.py worker` with `runserver` |
 | `provider/` | Resend API, webhooks, usage |
 | `storage/` | Quotas, ops dashboard (`/ops/`) |
 | `notifications/` | Web Push + PWA bits |
