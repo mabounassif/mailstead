@@ -149,6 +149,26 @@
     }
   }
 
+  function initComposeModal() {
+    var overlay = document.getElementById("compose-overlay");
+    if (!overlay) return;
+
+    var backdrop = overlay.querySelector(".compose-overlay__backdrop");
+    var closeHref = backdrop && backdrop.getAttribute("href");
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && closeHref) {
+        e.preventDefault();
+        window.location.href = closeHref;
+      }
+    });
+
+    var to = document.getElementById("to");
+    if (to) {
+      to.focus();
+    }
+  }
+
   function initComposeDraft() {
     var textarea = document.getElementById("body");
     if (!textarea || textarea.value) return;
@@ -166,6 +186,7 @@
   function init() {
     initMailNav();
     initThreadReply();
+    initComposeModal();
     initComposeDraft();
   }
 

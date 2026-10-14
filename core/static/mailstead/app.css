@@ -248,6 +248,19 @@ img {
 
 /* —— Mail shell —— */
 
+body.mail-app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+body.mail-app .mail-shell {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
 .mail-shell {
   position: relative;
   display: flex;
@@ -425,15 +438,50 @@ a.sidebar-compose[aria-current="page"] {
   max-width: 100%;
 }
 
+body.mail-app .mail-content {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0.5rem 1rem 0;
+}
+
 .mail-pane {
   margin: -0.5rem -1rem 0;
   background: var(--surface);
   min-height: calc(100vh - var(--header-h) - 0.5rem);
 }
 
+/* List, message, and compose: fixed pane chrome, scroll body below app header */
+.mail-pane--list,
+.mail-pane--message {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+body.mail-app .mail-pane--list,
+body.mail-app .mail-pane--message {
+  min-height: 0;
+  max-height: none;
+}
+
+.mail-pane--list .mail-list-toolbar {
+  flex-shrink: 0;
+  background: var(--surface);
+  z-index: 2;
+}
+
 .mail-pane--list .message-list {
+  flex: 1;
+  min-height: 0;
   border-radius: 0;
   box-shadow: none;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .mail-list-toolbar {
@@ -647,26 +695,53 @@ a.sidebar-compose[aria-current="page"] {
   color: var(--muted);
 }
 
-/* —— Compose (full main panel) —— */
+/* —— Compose (modal overlay) —— */
 
-.mail-pane--compose {
-  display: flex;
-  flex-direction: column;
-  min-height: calc(100vh - var(--header-h) - 0.5rem);
+body.mail-app--compose .mail-content {
+  position: relative;
+  flex: 1;
+  min-height: 0;
 }
 
-.compose-panel--page {
-  position: static;
-  z-index: auto;
+.compose-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem;
+  box-sizing: border-box;
+}
+
+.compose-overlay__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(32, 33, 36, 0.55);
+  text-decoration: none;
+}
+
+.compose-modal {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  width: 100%;
+  max-width: 56rem;
+  margin: 0 auto;
+  pointer-events: none;
+}
+
+.compose-panel--modal {
+  pointer-events: auto;
   flex: 1;
   display: flex;
   flex-direction: column;
+  min-height: 0;
   width: 100%;
-  max-width: none;
-  max-height: none;
-  margin: 0;
-  border-radius: 0;
-  box-shadow: none;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-compose);
   overflow: hidden;
 }
 
@@ -677,29 +752,41 @@ a.sidebar-compose[aria-current="page"] {
   overflow: hidden;
 }
 
-.mail-pane--compose .compose-panel__form {
+.compose-overlay .compose-panel__form {
   flex: 1;
   min-height: 0;
 }
 
-.mail-pane--compose .compose-field--grow {
+.compose-overlay .compose-field--grow {
   flex: 1;
   align-items: stretch;
   min-height: 12rem;
 }
 
-.mail-pane--compose .compose-field--grow textarea {
+.compose-overlay .compose-field--grow textarea {
   flex: 1;
   min-height: 18rem;
 }
 
+@media (max-width: 768px) {
+  .compose-overlay {
+    padding: 0.5rem;
+  }
+
+  .compose-modal {
+    max-width: none;
+  }
+}
+
 .compose-panel__header {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: space-between;
   padding: 0.65rem 1rem;
   background: #f2f6fc;
   border-bottom: 1px solid var(--border);
+  z-index: 2;
 }
 
 .compose-panel__title {
@@ -779,17 +866,38 @@ a.sidebar-compose[aria-current="page"] {
 
 /* —— Message detail (Gmail-style) —— */
 
+.mail-pane--message .message-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  max-width: none;
+}
+
 .message-view {
-  max-width: 52rem;
+  max-width: none;
+  width: 100%;
 }
 
 .message-view__toolbar {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   gap: 0.15rem;
   padding: 0.35rem 0.5rem;
   border-bottom: 1px solid #f1f3f4;
   margin: 0 -0.5rem;
+  background: var(--surface);
+  z-index: 2;
+}
+
+.mail-pane--message .message-view__thread {
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .message-view__tool,
@@ -1786,6 +1894,15 @@ dl.stats dd {
 
 @media (max-width: 1023px) {
   .mail-content {
+    padding-bottom: 5rem;
+  }
+
+  body.mail-app .mail-content {
+    padding-bottom: 0;
+  }
+
+  body.mail-app .mail-pane--list .message-list,
+  body.mail-app .mail-pane--message .message-view__thread {
     padding-bottom: 5rem;
   }
 

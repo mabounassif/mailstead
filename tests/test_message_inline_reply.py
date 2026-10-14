@@ -37,7 +37,8 @@ def test_full_reply_compose_uses_main_panel():
     resp = client.get(f"/mail/m/{copy.id}/reply/?full=1")
     html = resp.content.decode()
     assert resp.status_code == 200
-    assert "mail-pane--compose" in html
+    assert "compose-overlay" in html
+    assert "compose-panel--modal" in html
     assert 'id="body"' in html
 
 
