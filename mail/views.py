@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from urllib.parse import urlencode
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -13,9 +14,22 @@ from django.urls import reverse
 
 from django.views.decorators.http import require_POST
 
-from mail.chats import contact_chats, contact_key, contact_messages, counterparty, detach_catchall, group_messages
+from mail.chats import (
+    ALL_THREADS,
+    compose_subject,
+    contact_chats,
+    contact_key,
+    contact_messages,
+    counterparty,
+    detach_catchall,
+    filter_thread,
+    group_messages,
+    reply_target,
+    subject_options,
+    thread_value,
+)
 from mail.compose import reply_all_recipients, send_compose
-from mail.threading import copy_is_outgoing, thread_copies
+from mail.threading import copy_is_outgoing, effective_message_id, thread_copies
 from mail.deletion import empty_trash, move_to_trash, purge_message_copy, restore_from_trash
 from accounts.models import Mailbox
 from mail.models import Folder, Message, MessageAttachment, MessageCopy, Project
@@ -135,6 +149,9 @@ def inbox(request: HttpRequest) -> HttpResponse:
     if raw_project and raw_project.isdigit():
         selected = Project.objects.filter(mailbox=mailbox, pk=int(raw_project)).first()
     contact_address = (request.GET.get("contact") or "").strip()
+    thread = (request.GET.get("thread") or "").strip()
+    if thread == ALL_THREADS:
+        thread = ""
     if selected is not None:
         mode = "group"
         chats = group_messages(mailbox, selected)
@@ -148,7 +165,21 @@ def inbox(request: HttpRequest) -> HttpResponse:
         mode = "contacts"
         chats = contact_chats(mailbox)
         contact_label = ""
-    reply_copy = chats[-1]["copy"] if mode != "contacts" and chats else None
+    if mode in ("contact", "group") and request.method == "POST":
+        sent = _send_chat_message(
+            request,
+            mailbox,
+            mode=mode,
+            chats=chats,
+            contact_address=contact_key(contact_address) if contact_address else "",
+            project=selected,
+            thread=thread,
+        )
+        if sent is not None:
+            return sent
+    options = subject_options(chats) if mode in ("contact", "group") else []
+    visible = filter_thread(chats, thread) if mode in ("contact", "group") else chats
+    can_compose = mode == "contact" or (mode == "group" and bool(chats))
     return render(
         request,
         "mail/chats.html",
@@ -157,19 +188,91 @@ def inbox(request: HttpRequest) -> HttpResponse:
             "active_nav": Folder.INBOX,
             "selected_project": selected,
             "mode": mode,
-            "chats": chats,
+            "chats": visible,
             "contact_label": contact_label,
             "contact_address": contact_key(contact_address) if contact_address else "",
-            "reply_copy": reply_copy,
+            "subject_options": options,
+            "thread_filter": thread,
+            "compose_subject": compose_subject(chats, thread),
+            "can_compose": can_compose,
+            "show_subjects": not thread,
+            "chat_base_url": _chat_url(
+                contact=contact_key(contact_address) if contact_address else "",
+                project_id=selected.id if selected is not None else None,
+            ),
         },
+    )
+
+
+def _chat_url(*, contact: str = "", project_id: int | None = None, thread: str = "") -> str:
+    params: dict[str, str] = {}
+    if project_id:
+        params["project"] = str(project_id)
+    elif contact:
+        params["contact"] = contact
+    if thread and thread != ALL_THREADS:
+        params["thread"] = thread
+    query = urlencode(params)
+    url = reverse("mail_inbox")
+    return f"{url}?{query}" if query else url
+
+
+def _send_chat_message(request, mailbox, *, mode, chats, contact_address, project, thread):
+    body = (request.POST.get("body") or "").strip()
+    subject = (request.POST.get("subject") or "").strip()
+    if not body:
+        messages.error(request, "Write a message first.")
+        return None
+    if mode == "contact":
+        recipients = [contact_address] if contact_address else []
+    else:
+        recipients = []
+        own = (mailbox.address or "").casefold()
+        for item in chats:
+            addr = contact_key(counterparty(item["copy"].message, mailbox.address))
+            if addr and "@" in addr and addr != own and addr not in recipients:
+                recipients.append(addr)
+    if not recipients:
+        messages.error(request, "This conversation has no recipient yet.")
+        return None
+    target = reply_target(chats, subject)
+    kwargs = {}
+    if target is not None:
+        message_id = effective_message_id(target.message)
+        if message_id:
+            kwargs["in_reply_to"] = message_id
+            kwargs["references"] = message_id
+    try:
+        send_compose(
+            mailbox,
+            from_address=mailbox.address,
+            to=recipients,
+            subject=subject,
+            text=body,
+            **kwargs,
+        )
+    except Exception as exc:
+        messages.error(request, str(exc))
+        return None
+    messages.success(request, "Message queued.")
+    sent_thread = thread_value(subject)
+    next_thread = thread if not thread or thread == sent_thread else sent_thread
+    return redirect(
+        _chat_url(
+            contact=contact_address,
+            project_id=project.id if project is not None else None,
+            thread=next_thread,
+        )
     )
 
 
 def _new_chat(request: HttpRequest, mailbox) -> HttpResponse:
     draft_to = ""
     draft_body = ""
+    draft_subject = ""
     if request.method == "POST":
         draft_body = (request.POST.get("body") or "").strip()
+        draft_subject = (request.POST.get("subject") or "").strip()
         draft_to = (request.POST.get("to") or "").strip()
         recipients = [part.strip() for part in draft_to.split(",") if part.strip()]
         if not draft_body:
@@ -177,7 +280,7 @@ def _new_chat(request: HttpRequest, mailbox) -> HttpResponse:
         elif not recipients:
             messages.info(request, "Destination is still unspecified.")
         else:
-            subject = draft_body.split("\n", 1)[0][:120] or "Message"
+            subject = (request.POST.get("subject") or "").strip()
             try:
                 send_compose(
                     mailbox,
@@ -205,6 +308,7 @@ def _new_chat(request: HttpRequest, mailbox) -> HttpResponse:
             "reply_copy": None,
             "draft_to": draft_to,
             "draft_body": draft_body,
+            "draft_subject": draft_subject,
         },
     )
 

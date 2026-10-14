@@ -93,11 +93,5 @@
     {% endfor %}
     {% endif %}
   </nav>
-  <form class="workspace-list__create" method="post" action="{% url 'workspace_project_create' %}">
-    {% csrf_token %}
-    <label class="visually-hidden" for="project-name">New group</label>
-    <input id="project-name" name="name" type="text" maxlength="80" placeholder="New group" required>
-    <button type="submit" class="btn btn-text btn-sm">Add</button>
-  </form>
 </aside>
 {% endif %}
