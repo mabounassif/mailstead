@@ -1,6 +1,6 @@
 # Mailstead
 
-Self-hosted webmail for small teams, backed by [Resend](https://resend.com). One Docker service, a persistent data volume, and no Redis, Celery, or separate mail server in the default stack.
+Custom-domain email with a real browser inbox, backed by [Resend](https://resend.com). One Docker service, a persistent data volume, and no Redis, Celery, or separate mail server in the default stack.
 
 <p align="center">
   <img src="docs/assets/screenshots/inbox.png" alt="Mailstead inbox" width="920" />
@@ -16,6 +16,10 @@ Self-hosted webmail for small teams, backed by [Resend](https://resend.com). One
 - Ops dashboard at `/ops/` (storage, worker, webhooks)
 - Installable web app; optional Web Push when VAPID keys are set
 - Railway-ready: `/healthz`, `/readyz`, volume at `/data`
+
+## Custom-domain email setup
+
+Deploy on [Railway](https://railway.com/deploy/mailstead), then follow the [complete setup and verification guide](https://mailstead.app/docs/agent-setup/). Setting up with a coding agent? Use the [agent handoff](https://mailstead.app/for-agents/), [Markdown runbook](https://mailstead.app/docs/agent-setup.md), or the optional [deployment skill](marketing/public/skills/deploy-mailstead/SKILL.md). Confirm both inbound delivery and an outbound reply before calling an inbox ready.
 
 ## Quick start
 

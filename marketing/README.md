@@ -6,10 +6,12 @@ Static site for <https://mailstead.app>. It is not the Django webmail app. Custo
 
 ```bash
 cd marketing
-npm install
-npm run check    # calculator tests
+npm ci
+npm run check    # calculator and static-server tests
 npm run build    # writes dist/
+npm run check:site # verify built pages, links, exports and sitemap
 npm run preview  # local preview of dist/
+npm start        # production static server; honors PORT
 ```
 
 `npm run dev` serves a local draft with live reload.
@@ -28,8 +30,8 @@ Set `MARKETING_NOINDEX=true` only for a preview or staging build. A production b
 Use a second Railway service, not the webmail service.
 
 1. Create a service from this repository with root directory `marketing` (or build from `marketing/` in CI and upload `dist/`).
-2. Build command: `npm install && npm run build`.
-3. Publish `dist/` as a static site. Do not run gunicorn or the Django image for this service.
+2. Build command: `npm ci && npm run build`.
+3. Start command: `npm start`. This serves `dist/` with correct file types, directory redirects, and real HTTP 404 responses. Remove any existing `serve -s` or other SPA fallback override. For a Docker deployment, select `marketing/Dockerfile` with `marketing/` as the build context; this is separate from the repository’s Django Dockerfile.
 4. Add the custom domain `mailstead.app` on that service. Buying the domain does not create the DNS record. At the registrar, point the domain at the target Railway shows for this service, then wait until the certificate is issued.
 5. Leave `MARKETING_NOINDEX` unset. Confirm `https://mailstead.app/robots.txt` and a page’s canonical URL use `https://mailstead.app/` with a trailing slash.
 6. Do not attach the webmail volume or `RESEND_API_KEY` to this service.
@@ -58,3 +60,13 @@ After `mailstead.app` answers over HTTPS:
 ## Crawlers
 
 `robots.txt` allows all user agents to read public marketing URLs. It does not change Google-Extended or other training-crawler policies. Those were left untouched on purpose.
+
+## Agent documentation and site checks
+
+`/for-agents/` provides a copyable setup prompt. The canonical runbook is `src/pages/docs/agent-setup.md`; the normal build emits HTML and the postbuild exports Markdown. The deployment skill is maintained at `public/skills/deploy-mailstead/SKILL.md` and is copied as a static asset, so building only `marketing/` needs no parent-directory sources. Read and install it using the chosen agent client's supported mechanism; it is not installed automatically.
+
+`/llms.txt` indexes Markdown and HTML. `/llms-full.txt` concatenates the runbook and articles without Astro frontmatter. `/sitemap-index.xml` is the primary sitemap; `/sitemap.xml` is an explicit compatibility alias. Unknown URLs must return HTTP 404 rather than homepage HTML. The included production server enforces this; external static hosts must be configured accordingly.
+
+After changing pages, run `npm run check`, `npm run build`, and `npm run check:site`. The last command validates internal links/anchors, one H1 per page, descriptions/canonicals, Markdown exports, sitemap entries, and the skill export. CI runs these commands for every PR. A passing build is not a live email delivery test.
+
+Account-dependent distribution actions and measurements are tracked in [distribution.md](../docs/distribution.md).

@@ -1,5 +1,6 @@
 ---
 import Base from "../layouts/Base.astro";
+import AgentHandoff from "../components/AgentHandoff.astro";
 import { site } from "../data/pricing.mjs";
 
 const software = {
@@ -35,26 +36,41 @@ const org = {
 
   <section class="wrap hero">
     <div>
-      <p class="fine">Your team’s email. One service. No mail server to babysit.</p>
-      <h1>Self-hosted webmail for your custom domain.</h1>
+      <p class="eyebrow">Open-source custom-domain email</p>
+      <h1>Your domain.<br />Your inbox.<br /><span class="accent">One deploy.</span></h1>
       <p class="lede">
-        Mailstead gives small teams a familiar inbox, backed by Resend. Deploy one Docker service on Railway, connect your domain, and keep mailbox data on your own persistent volume.
+        Give <code>hello@yourdomain.com</code> a real inbox. Deploy Mailstead on Railway, connect Resend, and send, receive, and reply from a familiar webmail app.
       </p>
       <div class="actions">
         <a class="button button-primary" href={site.deploy} data-track="deploy">Deploy on Railway</a>
         <a class="button button-secondary" href={site.repo} data-track="github">View on GitHub</a>
       </div>
-      <p class="fine">MIT licence. You still verify DNS, create mailboxes, and watch provider quotas.</p>
+      <ul class="hero-facts" aria-label="Deployment essentials"><li>MIT licensed</li><li>One Docker service</li><li>Persistent mailbox storage</li></ul>
+      <p class="fine">Free software. Hosting, mail transport, and your domain are separate costs. <a href="/pricing/">See the cost model</a>.</p>
+      <p class="fine"><a href="/for-agents/">Setting up with a coding agent? Start here →</a></p>
     </div>
     <figure class="shot">
       <img
         src="/images/inbox.png"
         width="2560"
         height="1600"
+        fetchpriority="high"
         alt="Mailstead inbox showing fictional messages from Alice Chen, Mailstead Ops, Acme Billing, and HR."
       />
       <figcaption>Demo inbox with fictional mail. Your deployed instance uses your own domain.</figcaption>
     </figure>
+  </section>
+
+  <section class="section section-tint" id="use-cases">
+    <div class="wrap">
+      <p class="eyebrow">The inbox alongside your app</p>
+      <h2>A project needs more than an email address.</h2>
+      <div class="grid-3 use-cases">
+        <div><h3>Ship a project</h3><p>Give your domain a place for real conversations. Read incoming mail and reply from the same address.</p><a href="/guides/customer-email-inbox/">Set up a project inbox →</a></div>
+        <div><h3>Already using Resend?</h3><p>Keep Resend for transport. Add Mailstead for the inbox, sent mail, drafts, attachments, and search.</p><a href="/guides/resend-webmail/">Turn transport into an inbox →</a></div>
+        <div><h3>Work with a coding agent</h3><p>Give your agent a complete setup guide, clear inputs, and delivery checks it can report back to you.</p><a href="/for-agents/">Get the agent setup prompt →</a></div>
+      </div>
+    </div>
   </section>
 
   <section class="section" id="fit">
@@ -64,7 +80,7 @@ const org = {
         <div class="panel">
           <h3>A fit</h3>
           <p>
-            Developers, indie founders, and small teams who want <code>you@yourdomain</code> and are comfortable running one web application. The project is aimed at roughly 10–50 people. That range is a design target, not a published load test.
+            Developers and indie founders setting up their first inbox, and small teams comfortable running one web application. Start with the mailboxes you need. Message volume and provider quotas matter more than headcount.
           </p>
         </div>
         <div class="panel">
@@ -84,19 +100,19 @@ const org = {
         <div class="panel">
           <h3>Inbox work</h3>
           <p>
-            Inbox, Sent, Drafts, Archive, Junk, and Trash. Compose, reply, forward, attachments, and search. Local filter rules can file mail, and a DMARC failure can route a message to Junk. That is not a commercial spam service.
+            Read, compose, reply, and forward. Keep drafts, search conversations, handle attachments, and organize mail with folders and local rules.
           </p>
         </div>
         <div class="panel">
           <h3>Mailbox administration</h3>
           <p>
-            Create the first admin with a one-time bootstrap token, then add users and mailboxes in Admin. Each mailbox has a quota. The default in the data model is 250 MB until you change it.
+            Add users and addresses in Admin, and set a storage quota for each mailbox. Start with your own inbox and add the mailboxes your team needs.
           </p>
         </div>
         <div class="panel">
           <h3>Storage and provider usage</h3>
           <p>
-            An operations dashboard at <code>/ops/</code> shows storage, the worker, and webhooks. A Resend usage panel records quota snapshots. When the volume is full, overflow can keep metadata while Resend may still hold the original.
+            See storage, worker health, and webhook status in the operations dashboard. Review Resend quota snapshots so provider limits are visible alongside mailbox storage.
           </p>
         </div>
         <div class="panel">
@@ -137,6 +153,7 @@ const org = {
         </li>
       </ol>
       <p class="fine">Prerequisites: a Resend API key, a domain you can edit DNS for, and a Railway project. Postgres and Web Push are optional.</p>
+      <p><a href="/docs/agent-setup/">Follow the complete setup and delivery checklist →</a></p>
     </div>
   </section>
 
@@ -144,7 +161,7 @@ const org = {
     <div class="wrap">
       <h2>Where mail lives</h2>
       <p class="lede">
-        Mailstead is the application and the mailbox store. Resend is the external transport. Messages pass through Resend on the way in and out, so “mail never leaves your server” would be false.
+        Your deployed Mailstead application stores the mailbox database and attachments. Resend handles delivery in both directions, so messages also pass through its infrastructure.
       </p>
       <svg class="arch" viewBox="0 0 760 220" role="img" aria-labelledby="arch-title arch-desc">
         <title id="arch-title">Mailstead architecture</title>
@@ -228,6 +245,10 @@ const org = {
         </a>
       </div>
     </div>
+  </section>
+
+  <section class="section section-tint" id="agent-setup">
+    <div class="wrap"><p class="eyebrow">Bring your coding agent</p><h2>From “set up my email” to a verified reply.</h2><p class="lede">The guide covers Railway, Resend, DNS, mailbox creation, and the checks that establish a working inbox.</p><AgentHandoff /></div>
   </section>
 
   <section class="section" id="faq">
