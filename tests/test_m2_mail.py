@@ -3,11 +3,19 @@ from django.contrib.auth import get_user_model
 from django.test import Client
 
 from accounts.models import Mailbox
-from mail.html_safety import sanitize_html
+from mail.html_safety import sanitize_html, wrap_html_for_iframe
 from mail.models import Folder, Message, MessageCopy
 
 
 @pytest.mark.django_db
+def test_wrap_html_for_iframe_sets_base_typography():
+    wrapped = wrap_html_for_iframe("<html><body><p>Hi</p><blockquote>quote</blockquote></body></html>")
+    assert "font-family: system-ui" in wrapped
+    assert "<p>Hi</p>" in wrapped
+    assert "<blockquote>quote</blockquote>" in wrapped
+    assert "<html><body><p>Hi</p>" not in wrapped.replace(" ", "")
+
+
 def test_html_sanitizer_strips_script():
     raw = '<p>Hi</p><script>alert(1)</script><img src="https://evil.com/x.png">'
     out = sanitize_html(raw)

@@ -953,16 +953,25 @@ body.mail-app--compose .mail-content {
   display: flex;
   flex-direction: column;
   gap: 0;
-}
-
-.thread-message {
-  padding: 1rem 0;
   border-top: 1px solid #f1f3f4;
 }
 
-.thread-message:first-child {
-  border-top: none;
-  padding-top: 0.25rem;
+.thread-message {
+  padding: 0;
+  border-bottom: 1px solid #f1f3f4;
+}
+
+.thread-message--collapsible.is-collapsed {
+  background: transparent;
+}
+
+.thread-message--collapsible.is-expanded,
+.thread-message--collapsible.is-expanded.thread-message--last {
+  padding-bottom: 0.5rem;
+}
+
+.thread-message--last {
+  border-bottom: none;
 }
 
 .thread-message--outgoing .message-view__avatar {
@@ -974,11 +983,129 @@ body.mail-app--compose .mail-content {
 }
 
 .thread-message__header {
-  margin-bottom: 0.75rem;
+  margin-bottom: 0;
+}
+
+.thread-message--collapsible.is-expanded .thread-message__header {
+  margin-bottom: 0.65rem;
+}
+
+.thread-message__toggle {
+  display: grid;
+  width: 100%;
+  margin: 0;
+  padding: 0.65rem 0.25rem;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.thread-message--collapsible.is-collapsed .thread-message__toggle {
+  padding: 0.55rem 0.25rem;
+}
+
+.thread-message__toggle:hover {
+  background: rgba(60, 64, 67, 0.06);
+}
+
+.thread-message__toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.thread-message__snippet {
+  display: none;
+  margin: 0.15rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--muted);
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.thread-message--collapsible.is-collapsed .thread-message__snippet {
+  display: block;
+}
+
+.thread-message__sender-compact {
+  display: none;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.thread-message--collapsible.is-collapsed .thread-message__sender-compact {
+  display: inline;
+}
+
+.thread-message--collapsible.is-collapsed .thread-message__sender-detail {
+  display: none !important;
+}
+
+.thread-message__sender-detail {
+  display: inline;
+}
+
+.thread-message:not(.thread-message--collapsible) .thread-message__sender-compact {
+  display: none;
+}
+
+.thread-message__times {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.thread-message__date-compact {
+  display: none;
+  font-size: 0.75rem;
+}
+
+.thread-message__date-full {
+  display: block;
+  font-size: 0.75rem;
+}
+
+.thread-message--collapsible.is-collapsed .thread-message__date-compact {
+  display: block;
+}
+
+.thread-message--collapsible.is-collapsed .thread-message__date-full {
+  display: none;
+}
+
+.thread-message--collapsible.is-collapsed .message-view__avatar {
+  width: 2rem;
+  height: 2rem;
+  font-size: 0.8rem;
+}
+
+.thread-message--collapsible.is-expanded .message-view__avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.thread-message__expandable[hidden] {
+  display: none !important;
+}
+
+.thread-message--collapsible.is-expanded .thread-message__expandable {
+  padding: 0 0.25rem 0.35rem 3.35rem;
+}
+
+.thread-message--collapsible.is-collapsed .thread-message__expandable {
+  display: none !important;
 }
 
 .thread-message__body {
   padding-top: 0;
+}
+
+.thread-message--collapsible.is-expanded .thread-message__body {
+  padding-top: 0.15rem;
 }
 
 .message-view__subject {
@@ -1066,10 +1193,11 @@ body.mail-app--compose .mail-content {
   padding-top: 0.5rem;
 }
 
-.message-frame--inline {
+.message-frame.message-frame--inline {
   border: none;
   border-radius: 0;
-  min-height: 12rem;
+  min-height: 0;
+  background: transparent;
 }
 
 .message-body-pre--inline {

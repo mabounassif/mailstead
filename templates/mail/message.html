@@ -42,7 +42,7 @@
 
       <div class="message-view__thread-messages">
         {% for item in thread %}
-        {% include "partials/thread_message.html" %}
+        {% include "partials/thread_message.html" with thread_length=thread|length is_last=forloop.last %}
         {% endfor %}
       </div>
 
