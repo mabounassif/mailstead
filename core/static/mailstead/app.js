@@ -259,6 +259,20 @@
     }
   }
 
+  function initSubjectFilter() {
+    document.addEventListener("click", function (event) {
+      document.querySelectorAll(".subject-filter[open]").forEach(function (menu) {
+        if (!menu.contains(event.target)) menu.removeAttribute("open");
+      });
+    });
+    document.addEventListener("keydown", function (event) {
+      if (event.key !== "Escape") return;
+      document.querySelectorAll(".subject-filter[open]").forEach(function (menu) {
+        menu.removeAttribute("open");
+      });
+    });
+  }
+
   function init() {
     initMailNav();
     initThreadReply();
@@ -266,6 +280,7 @@
     initMessageFrames();
     initComposeModal();
     initComposeDraft();
+    initSubjectFilter();
   }
 
   if (document.readyState === "loading") {

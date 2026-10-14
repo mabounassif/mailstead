@@ -4,25 +4,44 @@
 {% block mail_content %}
 <div class="mail-pane mail-pane--list">
   <section class="chat-pane" aria-label="{% if mode == 'group' %}{{ selected_project.name }}{% elif mode == 'contact' %}{{ contact_label|mail_display_name }}{% else %}Messages{% endif %}">
-    <div class="mail-list-toolbar{% if mode == 'new' %} mail-list-toolbar--compose{% endif %}">
-      {% if mode == 'group' or mode == 'contact' %}
-      <a class="chat-back" href="{% url 'mail_inbox' %}">Messages</a>
-      {% elif mode == 'new' %}
-      <a class="chat-cancel" href="{% url 'mail_inbox' %}">Cancel</a>
-      {% endif %}
-      {% if mode == 'group' %}
-      <h1 class="mail-list-toolbar__title">{{ selected_project.name }}</h1>
-      <p class="mail-list-toolbar__subtitle">Group</p>
-      {% elif mode == 'new' %}
-      <h1 class="mail-list-toolbar__title">New Message</h1>
-      {% elif mode == 'contact' %}
-      <h1 class="mail-list-toolbar__title">{{ contact_label|mail_display_name }}</h1>
-      <p class="mail-list-toolbar__subtitle">{{ contact_address }}</p>
+    {% if mode == 'contact' or mode == 'group' or mode == 'new' %}
+    <div class="thread-header">
+      <a class="thread-back" href="{% url 'mail_inbox' %}" aria-label="Back to messages">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M14.5 6 8.5 12l6 6"/>
+        </svg>
+      </a>
+      <div class="thread-header__center">
+        {% if mode == 'new' %}
+        <span class="thread-header__avatar" aria-label="New message">+</span>
+        {% elif mode == 'group' %}
+        <span class="thread-header__avatar thread-header__avatar--group" aria-label="{{ selected_project.name }}">{{ selected_project.name|mail_avatar_initial }}</span>
+        {% else %}
+        <span class="thread-header__avatar" aria-label="{{ contact_label|mail_display_name }}">{{ contact_label|mail_avatar_initial }}</span>
+        {% endif %}
+      </div>
+      {% if subject_options %}
+      <details class="subject-filter{% if thread_filter %} is-on{% endif %}">
+        <summary aria-label="{% if thread_filter %}Subjects, filtered. Clear or change.{% else %}Filter by subject{% endif %}">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 5h16l-6.2 7.2V19l-3.6 1.6v-8.4L4 5z"/>
+          </svg>
+        </summary>
+        <div class="subject-filter__menu" role="list">
+          <a role="listitem" href="{{ chat_base_url }}"{% if not thread_filter %} aria-current="true"{% endif %}>All subjects</a>
+          {% for option in subject_options %}
+          <a role="listitem" href="{{ chat_base_url }}&amp;thread={{ option.value|urlencode }}"{% if thread_filter == option.value %} aria-current="true"{% endif %}>{{ option.label }}</a>
+          {% endfor %}
+          {% if thread_filter %}
+          <a class="subject-filter__clear" role="listitem" href="{{ chat_base_url }}">Clear filter</a>
+          {% endif %}
+        </div>
+      </details>
       {% else %}
-      <h1 class="mail-list-toolbar__title">Messages</h1>
-      <p class="mail-list-toolbar__subtitle">Choose a contact</p>
+      <span class="thread-header__end" aria-hidden="true"></span>
       {% endif %}
     </div>
+    {% endif %}
     {% if mode == 'new' %}
     <form class="new-chat" method="post" action="{% url 'mail_inbox' %}?new=1">
       {% csrf_token %}
@@ -34,6 +53,9 @@
         {% if draft_body %}
         <div class="chat-bubble-row is-out">
           <div class="chat-bubble">
+            {% if draft_subject %}
+            <span class="chat-bubble__subject">{{ draft_subject }}</span>
+            {% endif %}
             <p class="chat-bubble__text">{{ draft_body }}</p>
           </div>
         </div>
@@ -42,13 +64,155 @@
         {% endif %}
       </div>
       <div class="chat-compose">
-        <label class="visually-hidden" for="chat-compose-body">Message</label>
-        <textarea id="chat-compose-body" name="body" rows="1" placeholder="Message" required>{{ draft_body }}</textarea>
-        <button type="submit" class="btn btn-primary">Send</button>
+        <label class="chat-compose__subject">
+          <span class="visually-hidden">Subject</span>
+          <input type="text" name="subject" value="{{ draft_subject|default:'' }}" placeholder="Subject (optional)" maxlength="998" autocomplete="off">
+        </label>
+        <div class="chat-compose__row">
+          <label class="visually-hidden" for="chat-compose-body">Message</label>
+          <textarea id="chat-compose-body" name="body" rows="1" placeholder="Message" required>{{ draft_body }}</textarea>
+          <button type="submit" class="btn btn-primary">Send</button>
+        </div>
       </div>
     </form>
     {% elif mode == 'contacts' %}
-    <p class="chat-empty">Contacts are listed under Messages.</p>
+    <div class="mail-idle">
+      <div class="mail-idle__art" aria-hidden="true">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 320 240"
+          fill="none"
+          focusable="false"
+        >
+          <defs>
+            <linearGradient
+              id="mail-idle-bg"
+              x1="64" y1="60" x2="250" y2="206"
+              gradientUnits="userSpaceOnUse"
+            >
+              <stop stop-color="#EFF5FF"/>
+              <stop offset="1" stop-color="#E0EBFF"/>
+            </linearGradient>
+      
+            <linearGradient
+              id="mail-idle-blue"
+              x1="184" y1="44" x2="274" y2="104"
+              gradientUnits="userSpaceOnUse"
+            >
+              <stop stop-color="#4285F4"/>
+              <stop offset="1" stop-color="#1967D2"/>
+            </linearGradient>
+      
+            <linearGradient
+              id="mail-idle-front"
+              x1="160" y1="126" x2="160" y2="186"
+              gradientUnits="userSpaceOnUse"
+            >
+              <stop stop-color="#EDF4FF"/>
+              <stop offset="1" stop-color="#D3E3FD"/>
+            </linearGradient>
+      
+            <filter
+              id="mail-idle-shadow"
+              x="-30%" y="-40%" width="160%" height="190%"
+              color-interpolation-filters="sRGB"
+            >
+              <feDropShadow
+                dx="0" dy="8" stdDeviation="8"
+                flood-color="#174EA6" flood-opacity=".12"
+              />
+            </filter>
+      
+            <clipPath id="mail-idle-envelope">
+              <rect x="90" y="88" width="144" height="98" rx="16"/>
+            </clipPath>
+          </defs>
+      
+          <!-- Soft backdrop -->
+          <path
+            d="M54 119C54 78 94 49 142 57C177 63 189 49 220 67
+               C255 88 281 126 266 163C249 205 194 211 145 202
+               C93 193 54 167 54 119Z"
+            fill="url(#mail-idle-bg)"
+          />
+          <ellipse cx="162" cy="198" rx="72" ry="7" fill="#174EA6" opacity=".06"/>
+      
+          <!-- Envelope -->
+          <g filter="url(#mail-idle-shadow)">
+            <rect x="90" y="88" width="144" height="98" rx="16" fill="#FFF"/>
+      
+            <g clip-path="url(#mail-idle-envelope)">
+              <path d="M90 99L162 153L234 99" fill="#ABC9FA"/>
+              <path d="M90 186V104L146 146Z" fill="#E2EDFF"/>
+              <path d="M234 186V104L178 146Z" fill="#D5E5FD"/>
+              <path
+                d="M84 190L149 139Q162 129 175 139L240 190Z"
+                fill="url(#mail-idle-front)"
+              />
+              <path
+                d="M91 100L154 148Q162 154 170 148L233 100"
+                stroke="#FFF"
+                stroke-opacity=".85"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </g>
+      
+            <rect
+              x="90.75" y="88.75" width="142.5" height="96.5" rx="15.25"
+              stroke="#B8CEF0" stroke-opacity=".5" stroke-width="1.5"
+            />
+          </g>
+      
+          <!-- Outgoing message -->
+          <g filter="url(#mail-idle-shadow)">
+            <path
+              d="M202 44H260C271 44 280 53 280 64V77
+                 C280 88 271 97 260 97H208L190 108L194 95
+                 C187 92 182 85 182 77V64C182 53 191 44 202 44Z"
+              fill="url(#mail-idle-blue)"
+            />
+            <circle cx="211" cy="71" r="4" fill="#FFF"/>
+            <circle cx="231" cy="71" r="4" fill="#FFF" opacity=".85"/>
+            <circle cx="251" cy="71" r="4" fill="#FFF" opacity=".65"/>
+          </g>
+      
+          <!-- Incoming message -->
+          <g filter="url(#mail-idle-shadow)">
+            <path
+              d="M51 126H102C111 126 118 133 118 142V153
+                 C118 160 114 165 108 168L113 179L96 169H51
+                 C42 169 35 162 35 153V142C35 133 42 126 51 126Z"
+              fill="#FFF"
+              stroke="#D3E3FD"
+              stroke-width="1.5"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M51 142H101M51 154H82"
+              stroke="#94B4E3"
+              stroke-width="4"
+              stroke-linecap="round"
+            />
+          </g>
+      
+          <!-- Small accents -->
+          <circle cx="72" cy="76" r="5" fill="#4285F4" opacity=".8"/>
+          <circle cx="265" cy="154" r="6" fill="#F6C945"/>
+          <circle cx="250" cy="32" r="3" fill="#ABC9FA"/>
+          <path
+            d="M59 101V109M55 105H63"
+            stroke="#ABC9FA"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
+          <circle cx="242" cy="190" r="3" fill="#ABC9FA"/>
+        </svg>
+      </div>
+      <p class="mail-idle__title">No conversation open</p>
+      <p class="mail-idle__hint">Pick someone on the left to read and reply.</p>
+    </div>
     {% else %}
     <div class="chat-thread" aria-live="polite">
       {% for chat in chats %}
@@ -57,7 +221,7 @@
           {% if mode == 'group' and not chat.outgoing %}
           <span class="chat-bubble__name">{{ chat.who|mail_display_name }}</span>
           {% endif %}
-          {% if chat.title and chat.title != "(no subject)" %}
+          {% if show_subjects and chat.title and chat.title != "(no subject)" %}
           <span class="chat-bubble__subject">{{ chat.title }}</span>
           {% endif %}
           {% if chat.preview %}
@@ -70,12 +234,18 @@
       <p class="chat-empty">{% if mode == 'group' %}No messages in this group yet.{% else %}No messages yet.{% endif %}</p>
       {% endfor %}
     </div>
-    {% if reply_copy %}
-    <form class="chat-compose" method="post" action="{% url 'mail_reply' reply_copy.id %}">
+    {% if can_compose %}
+    <form class="chat-compose" method="post">
       {% csrf_token %}
-      <label class="visually-hidden" for="chat-compose-body">Message</label>
-      <textarea id="chat-compose-body" name="body" rows="1" placeholder="Message" required></textarea>
-      <button type="submit" class="btn btn-primary">Send</button>
+      <label class="chat-compose__subject">
+        <span class="visually-hidden">Subject</span>
+        <input type="text" name="subject" value="{{ compose_subject }}" placeholder="Subject (optional)" maxlength="998" autocomplete="off">
+      </label>
+      <div class="chat-compose__row">
+        <label class="visually-hidden" for="chat-compose-body">Message</label>
+        <textarea id="chat-compose-body" name="body" rows="1" placeholder="Message" required></textarea>
+        <button type="submit" class="btn btn-primary">Send</button>
+      </div>
     </form>
     {% endif %}
     {% endif %}

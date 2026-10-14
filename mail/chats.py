@@ -5,7 +5,10 @@ from email.utils import parseaddr
 
 from accounts.models import Mailbox
 from mail.models import Folder, MessageCopy, Project, ReconcileCursor
-from mail.threading import copy_is_outgoing
+from mail.threading import copy_is_outgoing, normalized_subject
+
+ALL_THREADS = "*"
+BLANK_THREAD = "__blank__"
 
 GENERAL_PROJECT = "General"
 CHAT_FOLDERS = (Folder.INBOX, Folder.SENT)
@@ -140,3 +143,41 @@ def group_messages(mailbox: Mailbox, project: Project) -> list[dict]:
     items = [_conversation_item(copy, mailbox) for copy in copies]
     items.sort(key=lambda item: item["sort_at"])
     return items
+
+
+def thread_value(subject: str) -> str:
+    norm = normalized_subject(subject)
+    return norm if norm else BLANK_THREAD
+
+
+def subject_options(items: list[dict]) -> list[dict]:
+    """Latest display label for each email subject in a conversation."""
+    labels: dict[str, str] = {}
+    for item in items:
+        raw = (item["copy"].message.subject or "").strip()
+        labels[thread_value(raw)] = raw or "(no subject)"
+    return [{"value": value, "label": label} for value, label in labels.items()]
+
+
+def filter_thread(items: list[dict], thread: str | None) -> list[dict]:
+    if not thread or thread == ALL_THREADS:
+        return items
+    return [item for item in items if thread_value(item["copy"].message.subject or "") == thread]
+
+
+def compose_subject(items: list[dict], thread: str | None) -> str:
+    if not thread or thread == ALL_THREADS:
+        return ""
+    for item in reversed(items):
+        raw = (item["copy"].message.subject or "").strip()
+        if thread_value(raw) == thread:
+            return raw
+    return ""
+
+
+def reply_target(items: list[dict], subject: str):
+    wanted = thread_value(subject)
+    for item in reversed(items):
+        if thread_value(item["copy"].message.subject or "") == wanted:
+            return item["copy"]
+    return None

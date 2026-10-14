@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
-{% block body_class %}mail-app{% endblock %}
+{% block body_class %}mail-app{% if contact_address or selected_project or new_message %} mail-app--thread{% endif %}{% endblock %}
 {% block header %}
 <header class="app-header app-header--mail">
   <button type="button" class="nav-toggle" id="mail-nav-toggle" aria-expanded="false" aria-controls="mail-sidebar" aria-label="Open menu">
