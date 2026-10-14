@@ -1,0 +1,30 @@
+---
+import { site } from "../data/pricing.mjs";
+const year = 2026;
+---
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div>
+      <strong>Mailstead</strong>
+      <p>
+        Self-hosted webmail for a custom domain. MIT licence. Mailstead stores the mailbox; Resend transports mail.
+      </p>
+    </div>
+    <div>
+      <a href={site.repo}>GitHub</a><br />
+      <a href={site.docsDeploy}>Deploy documentation</a><br />
+      <a href={site.docsOps}>Operations</a><br />
+      <a href="/guides/">Guides</a><br />
+      <a href="/docs/agent-setup/">Setup checklist</a><br />
+      <a href="/for-agents/">For coding agents</a>
+    </div>
+    <div>
+      <a href="/about/">About</a><br />
+      <a href={`${site.repo}/blob/main/LICENSE`}>MIT licence</a><br />
+      <a href={site.security}>Report a security issue</a><br />
+      <a href="/llms.txt">llms.txt</a>
+      <p>© {year} {site.author}</p>
+    </div>
+  </div>
+</footer>

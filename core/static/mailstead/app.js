@@ -1,5 +1,6 @@
 (function () {
   var COMPOSE_DRAFT_KEY = "mailstead:compose-draft";
+  var NAV_DESKTOP_KEY = "mailstead:nav-desktop-open";
 
   function initMailNav() {
     var btn = document.getElementById("mail-nav-toggle");
@@ -12,6 +13,26 @@
       return window.matchMedia("(min-width: 1024px)").matches;
     }
 
+    function readDesktopNavOpen() {
+      try {
+        var raw = localStorage.getItem(NAV_DESKTOP_KEY);
+        if (raw === "0") return false;
+        if (raw === "1") return true;
+      } catch (err) {
+        /* private mode / quota */
+      }
+      return true;
+    }
+
+    function writeDesktopNavOpen(open) {
+      if (!isDesktop()) return;
+      try {
+        localStorage.setItem(NAV_DESKTOP_KEY, open ? "1" : "0");
+      } catch (err) {
+        /* ignore */
+      }
+    }
+
     function setOpen(open) {
       sidebar.classList.toggle("is-open", open);
       shell.classList.toggle("nav-closed", !open);
@@ -20,6 +41,7 @@
         backdrop.hidden = !open;
         backdrop.classList.toggle("is-visible", open);
       }
+      writeDesktopNavOpen(open);
     }
 
     function isOpen() {
@@ -46,7 +68,7 @@
     });
 
     if (isDesktop()) {
-      setOpen(true);
+      setOpen(readDesktopNavOpen());
     } else {
       setOpen(false);
     }

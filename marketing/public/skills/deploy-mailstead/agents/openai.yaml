@@ -1,0 +1,4 @@
+interface:
+  display_name: "Deploy Mailstead"
+  short_description: "Set up custom-domain webmail on Railway with Resend"
+  default_prompt: "Use $deploy-mailstead to set up and verify custom-domain email with Mailstead."

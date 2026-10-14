@@ -1,0 +1,67 @@
+---
+import Base from "./Base.astro";
+import { site } from "../data/pricing.mjs";
+
+const { frontmatter } = Astro.props;
+const path = `/${frontmatter.section}/${frontmatter.slug}/`;
+const markdownPath = `/${frontmatter.section}/${frontmatter.slug}.md`;
+const canonical = new URL(path, site.url).href;
+const sectionLabel = frontmatter.section === "compare" ? "Compare" : frontmatter.section === "docs" ? "Documentation" : "Guides";
+const articleLd = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: frontmatter.h1,
+  description: frontmatter.description,
+  datePublished: frontmatter.published,
+  dateModified: frontmatter.updated,
+  author: { "@type": "Person", name: frontmatter.author, url: site.repo },
+  publisher: { "@type": "Organization", name: "Mailstead", url: site.url },
+  mainEntityOfPage: canonical,
+};
+const crumbs = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Home", item: site.url + "/" },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: sectionLabel,
+      item: `${site.url}/${frontmatter.section}/`,
+    },
+    { "@type": "ListItem", position: 3, name: frontmatter.h1, item: canonical },
+  ],
+};
+---
+
+<Base title={frontmatter.title} description={frontmatter.description} path={path}>
+  <Fragment slot="head">
+    <link rel="alternate" type="text/markdown" href={markdownPath} title="Markdown version" />
+    <script type="application/ld+json" set:html={JSON.stringify(articleLd)} />
+    <script type="application/ld+json" set:html={JSON.stringify(crumbs)} />
+  </Fragment>
+  <article class="section">
+    <div class="wrap">
+      <p class="crumbs">
+        <a href="/">Home</a>
+        /
+        <a href={`/${frontmatter.section}/`}>{sectionLabel}</a>
+        / <span>{frontmatter.h1}</span>
+      </p>
+      <div class="prose">
+        <h1>{frontmatter.h1}</h1>
+        <p class="byline">
+          By <a href="/about/">{frontmatter.author}</a>. Published {frontmatter.published}. Updated {frontmatter.updated}.
+          Sources checked {frontmatter.sourceChecked}.
+        </p>
+        <slot />
+        <p>
+          <a class="button button-primary" href={site.deploy} data-track="deploy">Deploy on Railway</a>
+        </p>
+        <p class="fine">
+          <a href={markdownPath}>Markdown version of this article</a>
+        </p>
+      </div>
+    </div>
+  </article>
+</Base>

@@ -1,0 +1,28 @@
+---
+import Base from "../layouts/Base.astro";
+import AgentHandoff from "../components/AgentHandoff.astro";
+---
+
+<Base title="Set up custom-domain email with your coding agent" description="Deploy a Mailstead inbox with your coding agent: a complete Railway and Resend runbook, Markdown documentation, an optional deployment skill, and delivery checks." path="/for-agents/">
+  <section class="section">
+    <div class="wrap">
+      <p class="eyebrow">From domain to working inbox</p>
+      <h1>Your agent can help set up the inbox.</h1>
+      <p class="lede">Give it a documented path from deployment to a verified reply. Mailstead supplies the webmail application; Railway hosts it and Resend transports the mail.</p>
+      <AgentHandoff />
+    </div>
+  </section>
+  <section class="section section-tint">
+    <div class="wrap grid-3">
+      <div><p class="eyebrow">01 · Choose</p><h2>Check the fit</h2><p>Use Mailstead for a browser inbox on your domain. Choose another solution if you need IMAP clients, managed mail hosting, or an office suite.</p></div>
+      <div><p class="eyebrow">02 · Configure</p><h2>Follow the runbook</h2><p>Deploy one service, attach storage, verify DNS in Resend, create mailboxes, and confirm the webhook. Account access and secrets stay with you.</p></div>
+      <div><p class="eyebrow">03 · Verify</p><h2>Test the full route</h2><p>Check <code>/readyz</code>, then receive a message from an outside account and reply. A green health check alone does not establish mail delivery.</p></div>
+    </div>
+  </section>
+  <section class="section">
+    <div class="wrap grid-2">
+      <div class="panel"><h2>Read without a browser</h2><p><a href="/docs/agent-setup.md">Setup guide in Markdown</a><br /><a href="/llms.txt">Documentation index</a><br /><a href="/llms-full.txt">Full documentation in plain text</a></p><p class="fine">These are public reference files. They do not grant access to your Railway, Resend, or DNS accounts.</p></div>
+      <div class="panel"><h2>Install the optional skill</h2><p><a href="/skills/deploy-mailstead/SKILL.md" download>Download deploy-mailstead/SKILL.md</a> and place it in your agent’s supported skill directory. For Claude Code, use <code>.claude/skills/deploy-mailstead/SKILL.md</code> inside your project.</p><p>Read the file before installing it. It references the current setup guide and defines delivery checks. Publishing it here does not automatically install it into agents.</p><p><a href="https://github.com/mabounassif/mailstead/tree/main/marketing/public/skills/deploy-mailstead">View the skill source</a></p></div>
+    </div>
+  </section>
+</Base>

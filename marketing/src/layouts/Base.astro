@@ -1,0 +1,85 @@
+---
+import "../styles/site.css";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import { site } from "../data/pricing.mjs";
+
+interface Props {
+  title: string;
+  description: string;
+  path: string;
+  ogImage?: string;
+  noindex?: boolean;
+}
+
+const { title, description, path, ogImage = "/images/inbox.png", noindex = false } = Astro.props;
+const canonical = new URL(path, site.url).href;
+const image = new URL(ogImage, site.url).href;
+const previewNoindex = import.meta.env.MARKETING_NOINDEX === "true";
+const robots = noindex || previewNoindex ? "noindex, nofollow" : "index, follow";
+const fullTitle = title.includes("Mailstead") ? title : `${title} · Mailstead`;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta name="robots" content={robots} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={image} />
+    <meta property="og:image:width" content="2560" />
+    <meta property="og:image:height" content="1600" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={image} />
+    <link rel="icon" href="/favicon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="help" href="/docs/agent-setup/" />
+    <slot name="head" />
+  </head>
+  <body>
+    <a class="skip" href="#content">Skip to content</a>
+    <Header />
+    <main id="content">
+      <slot />
+    </main>
+    <Footer />
+    <script>
+      const toggle = document.querySelector("[data-nav-toggle]");
+      const nav = document.querySelector("[data-nav]");
+      toggle?.addEventListener("click", () => {
+        const open = nav?.classList.toggle("is-open");
+        toggle.setAttribute("aria-expanded", open ? "true" : "false");
+      });
+      nav?.addEventListener("click", (event) => {
+        if ((event.target as HTMLElement)?.closest("a")) {
+          nav.classList.remove("is-open");
+          toggle?.setAttribute("aria-expanded", "false");
+        }
+      });
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && nav?.classList.contains("is-open")) {
+          nav.classList.remove("is-open");
+          toggle?.setAttribute("aria-expanded", "false");
+          (toggle as HTMLButtonElement)?.focus();
+        }
+      });
+      document.addEventListener("click", (event) => {
+        const target = event.target as HTMLElement | null;
+        const tracked = target?.closest("[data-track]");
+        if (!tracked) return;
+        const name = tracked.getAttribute("data-track");
+        const hook = (window as Window & { mailsteadAnalytics?: (event: string) => void }).mailsteadAnalytics;
+        if (name && typeof hook === "function") hook(name);
+      });
+    </script>
+  </body>
+</html>

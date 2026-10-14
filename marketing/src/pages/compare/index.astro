@@ -1,0 +1,32 @@
+---
+import Base from "../../layouts/Base.astro";
+import { articles } from "../../data/manifest.mjs";
+
+const items = articles.filter((article) => article.section === "compare");
+---
+
+<Base
+  title="Compare Mailstead"
+  description="Comparisons of Mailstead with Google Workspace, Microsoft 365, Zoho Mail, and mailcow. Each page uses checked vendor sources."
+  path="/compare/"
+>
+  <section class="section">
+    <div class="wrap">
+      <h1>Compare</h1>
+      <p class="lede">
+        These pages evaluate one alternative each. For a general tour of subscriptions, domains, and administration, start with the <a href="/guides/custom-domain-email-cost/">cost guide</a>.
+      </p>
+      <div class="grid-2">
+        {
+          items.map((article) => (
+            <a class="panel card-link" href={`/compare/${article.slug}/`}>
+              <h2>{article.title}</h2>
+              <p>{article.description}</p>
+              <p class="fine">Sources checked {article.sourceChecked}</p>
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+</Base>

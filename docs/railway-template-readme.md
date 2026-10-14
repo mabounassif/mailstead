@@ -12,19 +12,19 @@ Mailstead is a self-hosted webmail portal for small teams. [Resend](https://rese
 
 ## About Hosting
 
-Mailstead runs as a single Docker service with a **persistent volume at `/data`** (SQLite database and mail blobs). A background worker process handles inbound webhooks, outbound sends, and scheduled jobs. Attach a Railway public domain; `PUBLIC_URL` is set from `RAILWAY_PUBLIC_DOMAIN`.
+Mailstead runs as a single Docker service with a **persistent volume at `/data`** (SQLite database and mail blobs). An in-process background worker handles inbound webhooks, outbound sends, and scheduled jobs. Attach a Railway public domain; `PUBLIC_URL` is set from `RAILWAY_PUBLIC_DOMAIN`.
 
 ## Why Deploy
 
 - **Own your mail UI** without running a full mail stack (Postfix, Dovecot, etc.)
 - **Resend** handles deliverability and inbound receiving; Mailstead stores and presents mail
-- **Admin + per-user mailboxes** for 10–50 users
+- **Admin + per-user mailboxes** for founders and small teams; headcount is a design target, not a load-tested capacity
 - **Ops dashboard** at `/ops/` for storage and worker health
 - **Installable web app** with branded icon (header + Add to Home Screen); optional **push notifications** for new mail when VAPID keys are set
 
 ## Common Use Cases
 
-- Team shared hosting on your domain via Resend
+- A project inbox such as `hello@yourdomain.com` with receiving and replies
 - Internal notifications inbox with a simple web client
 - Staging or production portal next to your app on Railway
 
@@ -40,12 +40,17 @@ Mailstead runs as a single Docker service with a **persistent volume at `/data`*
 
 Generated at deploy: `SECRET_KEY`, `APP_ENCRYPTION_KEY`, `BOOTSTRAP_TOKEN`. Optional: `DATABASE_URL` for Postgres instead of SQLite on `/data`; `VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY` for Web Push (iPhone: Safari → Add to Home Screen, then **Notifications** in the mail sidebar).
 
+## Setup with a coding agent
+
+Use the [agent handoff](https://mailstead.app/for-agents/) and [Markdown setup runbook](https://mailstead.app/docs/agent-setup.md). The runbook separates the mail domain from the webmail hostname and covers DNS, bootstrap, webhooks, and delivery checks.
+
 ## First deploy
 
 1. Deploy and wait until **healthcheck** passes (`/healthz` recommended on Railway).
 2. Open `https://YOUR_DOMAIN/setup/BOOTSTRAP_TOKEN` once (token is in service variables).
 3. Create users and mailboxes in **Admin** (`/admin/`).
-4. Configure Resend DNS for `MAIL_DOMAIN` and register webhooks (scheduled job or admin).
+4. Configure sending and receiving DNS for `MAIL_DOMAIN`; confirm the app registers a webhook at `PUBLIC_URL` plus `/hooks/resend`.
+5. Check `/readyz`, receive an external test message in Mailstead, reply, and confirm the reply reaches the outside inbox. A green health check alone does not verify delivery.
 
 ## Volume
 

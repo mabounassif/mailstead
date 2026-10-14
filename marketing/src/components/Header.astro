@@ -1,0 +1,24 @@
+---
+import { site } from "../data/pricing.mjs";
+---
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img src="/favicon.png" width="28" height="28" alt="" />
+      Mailstead
+    </a>
+    <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav">
+      Menu
+    </button>
+    <nav id="site-nav" class="nav" data-nav aria-label="Primary">
+      <a href="/#features">Features</a>
+      <a href="/pricing/">Pricing</a>
+      <a href="/for-agents/">For agents</a>
+      <a href="/compare/">Compare</a>
+      <a href="/guides/">Guides</a>
+      <a href={site.repo} data-track="github">GitHub</a>
+      <a class="nav-cta" href={site.deploy} data-track="deploy">Deploy</a>
+    </nav>
+  </div>
+</header>
