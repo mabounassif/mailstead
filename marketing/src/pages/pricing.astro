@@ -1,0 +1,342 @@
+---
+import Base from "../layouts/Base.astro";
+import { estimate, formatUsd } from "../lib/cost.mjs";
+import {
+  googleWorkspace,
+  microsoft,
+  pricingVersion,
+  railway,
+  resend,
+  sourceChecked,
+  zoho,
+} from "../data/pricing.mjs";
+
+const counts = [1, 5, 10, 25, 50];
+const scenario = {
+  messagesPerMailbox: 20,
+  hostingUsageUsd: 3,
+  domainAnnualUsd: 0,
+  dailyFrom(messages: number) {
+    return Math.ceil(messages / 30);
+  },
+};
+
+const rows = counts.map((mailboxes) => {
+  const messages = mailboxes * scenario.messagesPerMailbox;
+  const dailyPeak = scenario.dailyFrom(messages);
+  const cost = estimate({
+    mailboxes,
+    messages,
+    dailyPeak,
+    hostingPlan: "hobby",
+    hostingUsageUsd: scenario.hostingUsageUsd,
+    domainAnnualUsd: 0,
+    alreadyHosting: false,
+    unusedCreditUsd: 0,
+  });
+  const incremental = estimate({
+    mailboxes,
+    messages,
+    dailyPeak,
+    hostingPlan: "hobby",
+    hostingUsageUsd: scenario.hostingUsageUsd,
+    alreadyHosting: true,
+    unusedCreditUsd: 5,
+  });
+  return {
+    mailboxes,
+    messages,
+    dailyPeak,
+    resend: cost.provider.ok ? cost.provider.plan.name : "No listed plan",
+    standalone: formatUsd(cost.standaloneTotalCents ?? 0),
+    incremental: formatUsd(incremental.incrementalTotalCents ?? 0),
+    workspace: formatUsd(Math.round(googleWorkspace.starter.annualPerUserMonthUsd * mailboxes * 100)),
+    exchange: formatUsd(Math.round(microsoft.exchangePlan1.annualPerUserMonthUsd * mailboxes * 100)),
+    basic: formatUsd(Math.round(microsoft.businessBasic.annualPerUserMonthUsd * mailboxes * 100)),
+    zohoLite: formatUsd(Math.round(zoho.lite5.annualPerUserMonthUsd * mailboxes * 100)),
+  };
+});
+
+const example = estimate({
+  mailboxes: 10,
+  messages: 200,
+  dailyPeak: 7,
+  hostingPlan: "hobby",
+  hostingUsageUsd: 3,
+  domainAnnualUsd: 0,
+  alreadyHosting: false,
+});
+---
+
+<Base
+  title="Mailstead pricing and cost model"
+  description="Software is MIT-licensed. Hosting, Resend, the domain, and your time are separate. Estimate standalone and incremental monthly cost in USD."
+  path="/pricing/"
+>
+  <section class="section">
+    <div class="wrap">
+      <h1>What you pay, and what you don’t</h1>
+      <p class="lede">
+        Mailstead’s software licence is $0. A working custom-domain inbox still has hosting, a mail provider, and usually a domain renewal. This page prices those parts in USD from sources checked on {sourceChecked}. Data version {pricingVersion}.
+      </p>
+
+      <h2 id="model">Cost model</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Component</th>
+              <th>How it is counted</th>
+              <th>Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Software</td>
+              <td>$0. MIT licence. No per-seat fee inside Mailstead.</td>
+              <td><a href="https://github.com/mabounassif/mailstead/blob/main/LICENSE">LICENSE</a></td>
+            </tr>
+            <tr>
+              <td>Railway Hobby</td>
+              <td>${railway.plans.hobby.monthlyFeeUsd}/month, including ${railway.plans.hobby.includedUsageUsd} of usage. The model bills the fee plus usage above that credit, so the credit is not added twice. Checked usage of $3 on Hobby is ${formatUsd(500)} total, not $8.</td>
+              <td><a href={railway.sourceUrl}>railway.com/pricing</a></td>
+            </tr>
+            <tr>
+              <td>Railway Pro</td>
+              <td>${railway.plans.pro.monthlyFeeUsd}/month, including ${railway.plans.pro.includedUsageUsd} of usage, per workspace.</td>
+              <td><a href={railway.sourceUrl}>railway.com/pricing</a></td>
+            </tr>
+            <tr>
+              <td>Resend</td>
+              <td>
+                Free: {resend.plans[0].includedEmails.toLocaleString()} emails/month, {resend.plans[0].dailyLimit}/day, $0.
+                Pro: $20 for 50,000 or $35 for 100,000. Received mail counts toward the same quota. Mailstead calls the send, receiving, and webhook APIs. It does not provision Resend’s hosted Inboxes, so the $1/inbox add-on is not part of this model.
+              </td>
+              <td><a href={resend.sourceUrl}>resend.com/pricing</a></td>
+            </tr>
+            <tr>
+              <td>Domain</td>
+              <td>Optional. Enter your registrar’s annual price. The calculator divides it by 12. The same domain cost applies to Google, Microsoft, and Zoho if you did not already own it.</td>
+              <td>Your registrar. No price is invented here.</td>
+            </tr>
+            <tr>
+              <td>Backups</td>
+              <td>Optional monthly amount you type. Mailstead does not sell backup storage.</td>
+              <td><a href="https://github.com/mabounassif/mailstead/blob/main/docs/operations.md">operations.md</a></td>
+            </tr>
+            <tr>
+              <td>Administration</td>
+              <td>Hours × hourly rate, shown beside the totals and not added into them.</td>
+              <td>Your assumption.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 id="two-totals">Two totals</h2>
+      <div class="grid-2">
+        <div class="panel">
+          <h3>A. Standalone</h3>
+          <p>Railway plan fee, usage above the included credit, the Resend plan that covers the month, plus optional domain and backups.</p>
+        </div>
+        <div class="panel">
+          <h3>B. Incremental</h3>
+          <p>For someone already paying for hosting. Only Mailstead’s resource usage above the unused included credit, plus Resend and the optional add-ons. The plan fee is not charged again.</p>
+        </div>
+      </div>
+
+      <h2 id="scenario">Illustrative month</h2>
+      <p>
+        Assumptions, not a capacity test: {scenario.messagesPerMailbox} combined sent and received messages per mailbox, daily peak spread evenly over 30 days, Railway Hobby, ${scenario.hostingUsageUsd} of measured usage, domain and backups excluded. Subscription columns assume one paid licence per mailbox. A shared address is not automatically another seat; check the vendor before you multiply.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Mailboxes</th>
+              <th>Messages / month</th>
+              <th>Daily peak</th>
+              <th>Resend plan</th>
+              <th>A. Mailstead standalone</th>
+              <th>B. Incremental if $5 credit remains</th>
+              <th>Workspace Starter, annual</th>
+              <th>Exchange Online Plan 1, yearly</th>
+              <th>Microsoft 365 Business Basic, yearly</th>
+              <th>Zoho Mail Lite 5 GB, annual</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              rows.map((row) => (
+                <tr>
+                  <td>{row.mailboxes}</td>
+                  <td>{row.messages}</td>
+                  <td>{row.dailyPeak}</td>
+                  <td>{row.resend}</td>
+                  <td>{row.standalone}</td>
+                  <td>{row.incremental}</td>
+                  <td>{row.workspace}</td>
+                  <td>{row.exchange}</td>
+                  <td>{row.basic}</td>
+                  <td>{row.zohoLite}</td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="fine">
+        Workspace Starter annual list is ${googleWorkspace.starter.annualPerUserMonthUsd.toFixed(2)}/user/month with a one-year commitment (${googleWorkspace.starter.annualPerUserYearUsd.toFixed(2)}/user/year). Flexible plan is ${googleWorkspace.starter.flexiblePerUserMonthUsd.toFixed(2)}/user/month with no annual commitment. Exchange Online Plan 1 at ${microsoft.exchangePlan1.annualPerUserMonthUsd} and Business Basic at ${microsoft.businessBasic.annualPerUserMonthUsd} are the yearly prices shown on Microsoft’s US pages; a month-to-month Microsoft price was not captured, so it is not shown. Zoho Mail Lite is ${zoho.lite5.annualPerUserMonthUsd}/user/month and is yearly-only in Zoho’s price file. These columns are list prices, not a promise that Mailstead is cheaper after your real volume.
+      </p>
+
+      <h2 id="calculator">Calculator</h2>
+      <p>
+        Results stay in USD. The first paint shows 10 mailboxes, 200 messages, a daily peak of 7, and $3 of Hobby usage: standalone {formatUsd(example.standaloneTotalCents ?? 0)} on Resend {example.provider.plan?.name}. Changing the form needs JavaScript. The table above does not.
+      </p>
+      <form id="cost-form" class="panel">
+        <div class="form-grid">
+          <div>
+            <label for="mailboxes">Mailboxes</label>
+            <input id="mailboxes" name="mailboxes" type="number" min="0" value="10" />
+          </div>
+          <div>
+            <label for="messages">Messages this month, sent plus received</label>
+            <input id="messages" name="messages" type="number" min="0" value="200" />
+          </div>
+          <div>
+            <label for="dailyPeak">Busiest day, message count</label>
+            <input id="dailyPeak" name="dailyPeak" type="number" min="0" value="7" />
+          </div>
+          <div>
+            <label for="hostingPlan">Railway plan for a new account</label>
+            <select id="hostingPlan" name="hostingPlan">
+              <option value="hobby">Hobby ($5 includes $5 usage)</option>
+              <option value="pro">Pro ($20 includes $20 usage)</option>
+            </select>
+          </div>
+          <div>
+            <label for="hostingUsageUsd">Estimated resource usage, USD</label>
+            <input id="hostingUsageUsd" name="hostingUsageUsd" type="number" min="0" step="0.01" value="3" />
+          </div>
+          <div>
+            <label for="unusedCreditUsd">Unused included credit if you already pay for hosting</label>
+            <input id="unusedCreditUsd" name="unusedCreditUsd" type="number" min="0" step="0.01" value="5" />
+          </div>
+          <div>
+            <label for="domainAnnualUsd">Domain renewal, USD per year</label>
+            <input id="domainAnnualUsd" name="domainAnnualUsd" type="number" min="0" step="0.01" value="0" />
+          </div>
+          <div>
+            <label for="backupsMonthlyUsd">Backups and extra storage, USD per month</label>
+            <input id="backupsMonthlyUsd" name="backupsMonthlyUsd" type="number" min="0" step="0.01" value="0" />
+          </div>
+          <div>
+            <label for="adminHours">Admin hours this month</label>
+            <input id="adminHours" name="adminHours" type="number" min="0" step="0.5" value="0" />
+          </div>
+          <div>
+            <label for="adminRateUsd">Hourly rate, USD</label>
+            <input id="adminRateUsd" name="adminRateUsd" type="number" min="0" step="1" value="0" />
+          </div>
+        </div>
+        <p>
+          <label>
+            <input id="alreadyHosting" name="alreadyHosting" type="checkbox" style="width:auto" />
+            I already pay for this hosting plan and want total B
+          </label>
+        </p>
+        <div class="result-grid">
+          <div class="panel">
+            <span class="fine">A. Standalone monthly total</span>
+            <strong id="total-a">{formatUsd(example.standaloneTotalCents ?? 0)}</strong>
+            <p id="detail-a" class="fine">Hobby hosting plus Resend Free. Domain and backups are zero in this example.</p>
+          </div>
+          <div class="panel">
+            <span class="fine">B. Incremental monthly total</span>
+            <strong id="total-b">$0.00</strong>
+            <p id="detail-b" class="fine">Shown when the checkbox is on. Otherwise B is not a second bill.</p>
+          </div>
+        </div>
+        <p id="calc-note" class="fine" role="status"></p>
+        <p id="admin-note" class="fine"></p>
+      </form>
+      <h2 id="limits">Limits of this page</h2>
+      <ul>
+        <li>No plan here is “the cheapest” for every team. A 50-person team can leave Resend Free on message volume alone.</li>
+        <li>Free Resend has no overage. Paid overage exists only if you enable it, and this calculator picks a plan that includes the month instead of assuming overage.</li>
+        <li>Railway Free is omitted: it includes $1 of usage and zero custom domains, with a 500 MB volume cap. The template path this site documents is Hobby or above when you need a real domain and room for mail.</li>
+        <li>Canadian prices are not mixed into these totals. Google publishes Business Starter at C${googleWorkspace.starter.cadAnnual.toFixed(2)}/user/month on the annual plan and C${googleWorkspace.starter.cadFlexible.toFixed(2)} on Flexible. Zoho’s JSON lists Mail Lite 5 GB at C${zoho.cad.lite5Annual.toFixed(2)}/user/month, annual only.</li>
+        <li>Introductory Workspace discounts are excluded. See the <a href="/compare/mailstead-vs-google-workspace/">Workspace comparison</a>.</li>
+      </ul>
+    </div>
+  </section>
+</Base>
+
+<script>
+  import { estimate, formatUsd } from "../lib/cost.mjs";
+
+  const form = document.querySelector("#cost-form");
+  if (form instanceof HTMLFormElement) {
+    const totalA = document.querySelector("#total-a");
+    const totalB = document.querySelector("#total-b");
+    const detailA = document.querySelector("#detail-a");
+    const detailB = document.querySelector("#detail-b");
+    const note = document.querySelector("#calc-note");
+    const admin = document.querySelector("#admin-note");
+
+    const render = () => {
+      const data = new FormData(form);
+      const result = estimate({
+        mailboxes: data.get("mailboxes"),
+        messages: data.get("messages"),
+        dailyPeak: data.get("dailyPeak"),
+        hostingPlan: data.get("hostingPlan"),
+        hostingUsageUsd: data.get("hostingUsageUsd"),
+        unusedCreditUsd: data.get("unusedCreditUsd"),
+        domainAnnualUsd: data.get("domainAnnualUsd"),
+        backupsMonthlyUsd: data.get("backupsMonthlyUsd"),
+        adminHours: data.get("adminHours"),
+        adminRateUsd: data.get("adminRateUsd"),
+        alreadyHosting: data.get("alreadyHosting") === "on",
+      });
+      if (!result.provider.ok || result.standaloneTotalCents == null || result.incrementalTotalCents == null) {
+        if (totalA) totalA.textContent = "Not estimated";
+        if (totalB) totalB.textContent = "Not estimated";
+        if (note) {
+          note.textContent =
+            "Monthly volume is above the plans encoded here (through Scale 500,000). Read Resend’s current Scale and Enterprise rows before quoting a price.";
+        }
+        return;
+      }
+      if (totalA) totalA.textContent = formatUsd(result.standaloneTotalCents);
+      if (detailA) {
+        detailA.textContent = `${result.hostingPlan.name} hosting ${formatUsd(result.standaloneHostingCents)}, Resend ${result.provider.plan?.name} ${formatUsd(result.provider.feeCents)}, domain ${formatUsd(result.domainCents)}, backups ${formatUsd(result.backupCents)}.`;
+      }
+      if (data.get("alreadyHosting") === "on") {
+        if (totalB) totalB.textContent = formatUsd(result.incrementalTotalCents);
+        if (detailB) {
+          detailB.textContent = `Hosting increment ${formatUsd(result.incrementalHostingCents)} plus the same Resend and add-ons. The workspace fee is assumed already paid.`;
+        }
+      } else if (totalB && detailB) {
+        totalB.textContent = "—";
+        detailB.textContent = "Turn on the checkbox to estimate an account that already pays for Railway.";
+      }
+      if (note) {
+        const daily =
+          result.provider.reason === "daily-limit"
+            ? " Resend Free is ineligible because the daily peak is over 100, so the estimate uses the next included plan."
+            : "";
+        note.textContent = `Currency USD. Source check 2026-10-14. ${result.messages.toLocaleString()} messages this month, daily peak ${result.dailyPeak ?? "not set"}. Mailbox count does not change the Resend fee.${daily}`;
+      }
+      if (admin) {
+        admin.textContent =
+          result.adminCents > 0
+            ? `Administration, not included in A or B: ${formatUsd(result.adminCents)}.`
+            : "Administration is $0 in this run because hours or rate is zero.";
+      }
+    };
+
+    form.addEventListener("input", render);
+    render();
+  }
+</script>
