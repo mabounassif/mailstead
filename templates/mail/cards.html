@@ -1,0 +1,40 @@
+{% extends "mail/base_mail.html" %}
+{% block title %}Wallets — Mailstead{% endblock %}
+{% block mail_content %}
+<div class="mail-pane mail-pane--list workspace-page">
+  <div class="mail-list-toolbar">
+    <h1 class="mail-list-toolbar__title">Wallets</h1>
+    <p class="mail-list-toolbar__subtitle">Wallets kept on this server.</p>
+  </div>
+  <form class="workspace-form" method="post">
+    {% csrf_token %}
+    <label class="form-field">
+      <span>Title</span>
+      <input type="text" name="title" maxlength="160" required placeholder="Wallet name">
+    </label>
+    <label class="form-field">
+      <span>Note</span>
+      <textarea name="body" rows="3" placeholder="Write a note"></textarea>
+    </label>
+    <button type="submit" class="btn btn-primary">Add wallet</button>
+  </form>
+  <ul class="card-grid">
+    {% for card in cards %}
+    <li class="note-card">
+      <div class="note-card__head">
+        <h2 class="note-card__title">{{ card.title }}</h2>
+        <form method="post" action="{% url 'workspace_card_delete' card.id %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-text btn-sm">Remove</button>
+        </form>
+      </div>
+      {% if card.body %}<p class="note-card__body">{{ card.body }}</p>{% endif %}
+    </li>
+    {% empty %}
+    <li class="workspace-list__empty">
+      <p class="empty-state">No wallets yet.</p>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}

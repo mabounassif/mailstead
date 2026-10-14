@@ -1,9 +1,17 @@
 from django.urls import path
 
-from mail import views
+from mail import views, workspace_views
 
 urlpatterns = [
     path("", views.inbox, name="mail_inbox"),
+    path("projects/", workspace_views.create_project, name="workspace_project_create"),
+    path("drive/", workspace_views.drive, name="workspace_drive"),
+    path("cards/", workspace_views.cards, name="workspace_cards"),
+    path("cards/<int:card_id>/delete/", workspace_views.delete_card, name="workspace_card_delete"),
+    path("passwords/", workspace_views.passwords, name="workspace_passwords"),
+    path("passwords/<int:entry_id>/delete/", workspace_views.delete_password, name="workspace_password_delete"),
+    path("agents/", workspace_views.agents, name="workspace_agents"),
+    path("agents/<int:agent_id>/delete/", workspace_views.delete_agent, name="workspace_agent_delete"),
     path("compose/", views.compose, name="mail_compose"),
     path("f/<str:folder>/", views.folder_view, name="mail_folder"),
     path("m/<int:copy_id>/", views.message_detail, name="mail_message"),

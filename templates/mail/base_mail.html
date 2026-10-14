@@ -10,13 +10,13 @@
   </button>
   <form class="header-search" method="get" action="{% url 'mail_search' %}" role="search">
     <label class="header-search__wrap">
-      <input class="header-search__input" type="search" name="q" value="{{ request.GET.q|default:'' }}" placeholder="Search mail" autocomplete="off" aria-label="Search mail">
+      <input class="header-search__input" type="search" name="q" value="{{ request.GET.q|default:'' }}" placeholder="Search" autocomplete="off" aria-label="Search">
     </label>
   </form>
 </header>
 {% endblock %}
 {% block body %}
-<div class="mail-shell">
+<div class="mail-shell{% if active_nav == 'inbox' %} has-list{% endif %}{% if active_nav == 'inbox' and not contact_address and not selected_project and not new_message %} is-list-only{% endif %}{% if contact_address or selected_project or new_message %} is-thread-open{% endif %}{% if new_message %} is-composing{% endif %}">
   {% include "partials/mail_nav.html" %}
   <main class="mail-content">
     {% if messages %}
@@ -28,8 +28,8 @@
     {% endif %}
     {% block mail_content %}{% endblock %}
   </main>
-  {% if active_nav != 'compose' and active_nav != 'ops' %}
-  <a class="compose-fab" href="{% url 'mail_compose' %}" aria-label="Compose">
+  {% if active_nav == 'inbox' or active_nav == 'junk' or active_nav == 'trash' or active_nav == 'search' %}
+  <a class="compose-fab" href="{% url 'mail_inbox' %}?new=1" aria-label="New message">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24" aria-hidden="true">
       <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1.003 1.003 0 0 0 0-1.42l-2.34-2.34a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.82z"/>
     </svg>

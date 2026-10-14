@@ -54,10 +54,28 @@ class Message(models.Model):
         ]
 
 
+class Project(models.Model):
+    mailbox = models.ForeignKey("accounts.Mailbox", on_delete=models.CASCADE, related_name="projects")
+    name = models.CharField(max_length=80)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["name", "id"]
+        constraints = [
+            models.UniqueConstraint(fields=["mailbox", "name"], name="uniq_mailbox_project_name"),
+        ]
+
+    def __str__(self) -> str:
+        return self.name
+
+
 class MessageCopy(models.Model):
     message = models.ForeignKey(Message, on_delete=models.CASCADE, related_name="copies")
     mailbox = models.ForeignKey("accounts.Mailbox", on_delete=models.CASCADE, related_name="message_copies")
     folder = models.CharField(max_length=16, choices=Folder.choices, default=Folder.INBOX)
+    project = models.ForeignKey(
+        Project, on_delete=models.SET_NULL, null=True, blank=True, related_name="copies"
+    )
     is_unread = models.BooleanField(default=True)
     bcc_snapshot = models.TextField(blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
@@ -135,3 +153,35 @@ class ReconcileCursor(models.Model):
     name = models.CharField(max_length=64, unique=True)
     cursor_value = models.CharField(max_length=255, blank=True, default="")
     updated_at = models.DateTimeField(auto_now=True)
+
+
+class Card(models.Model):
+    mailbox = models.ForeignKey("accounts.Mailbox", on_delete=models.CASCADE, related_name="cards")
+    title = models.CharField(max_length=160)
+    body = models.TextField(blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at", "-id"]
+
+
+class VaultEntry(models.Model):
+    mailbox = models.ForeignKey("accounts.Mailbox", on_delete=models.CASCADE, related_name="vault_entries")
+    label = models.CharField(max_length=160)
+    username = models.CharField(max_length=320, blank=True, default="")
+    secret = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["label", "id"]
+
+
+class AgentProfile(models.Model):
+    mailbox = models.ForeignKey("accounts.Mailbox", on_delete=models.CASCADE, related_name="agents")
+    name = models.CharField(max_length=80)
+    instructions = models.TextField(blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["name", "id"]

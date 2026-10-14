@@ -1,86 +1,25 @@
 {% load mail_extras %}
-<section
-  class="thread-message{% if item.is_outgoing %} thread-message--outgoing{% endif %}{% if item.is_anchor %} thread-message--anchor{% endif %}{% if is_last %} thread-message--last{% endif %}{% if thread_length > 1 %} thread-message--collapsible{% if not item.starts_expanded %} is-collapsed{% else %} is-expanded{% endif %}{% endif %}"
+<div
+  class="chat-bubble-row thread-message{% if item.is_outgoing %} is-out thread-message--outgoing{% else %} is-in{% endif %}{% if is_last %} thread-message--last{% endif %}"
   id="thread-message-{{ item.copy.id }}"
 >
-  {% if thread_length > 1 %}
-  <button
-    type="button"
-    class="thread-message__header thread-message__toggle message-view__meta"
-    aria-expanded="{% if item.starts_expanded %}true{% else %}false{% endif %}"
-    aria-controls="thread-message-body-{{ item.copy.id }}"
-  >
-  {% else %}
-  <header class="thread-message__header message-view__meta">
-  {% endif %}
-    <div class="message-view__avatar" aria-hidden="true">
-      {% if item.is_outgoing %}me{% else %}{{ item.message.from_address|mail_avatar_initial }}{% endif %}
-    </div>
-    <div class="message-view__addresses">
-      <div class="message-view__from-line">
-        {% if item.is_outgoing %}
-        <span class="message-view__sender-name thread-message__sender-compact">{{ item.message.from_address|mail_address_only }}</span>
-        <span class="message-view__sender-name thread-message__sender-detail">You</span>
-        <span class="message-view__sender-email thread-message__sender-detail">to {{ item.message.to_index|default:"(no recipient)" }}</span>
-        {% else %}
-        <span class="message-view__sender-name thread-message__sender-compact">{{ item.message.from_address|mail_address_only }}</span>
-        <span class="message-view__sender-name thread-message__sender-detail">{{ item.message.from_address|mail_display_name }}</span>
-        <span class="message-view__sender-email thread-message__sender-detail">&lt;{{ item.message.from_address|mail_address_only }}&gt;</span>
-        {% endif %}
-      </div>
-      <p class="thread-message__snippet">{% message_snippet item.message 140 %}</p>
-      {% if not item.is_outgoing %}
-      <div class="message-view__to-line thread-message__sender-detail">
-        <span class="message-view__to-label">to</span>
-        <span class="message-view__to-value">me</span>
-        {% if item.bcc_for_view %}<span class="message-view__bcc"> · bcc: {{ item.bcc_for_view }}</span>{% endif %}
-      </div>
-      {% endif %}
-    </div>
-    <div class="thread-message__times">
-      <time class="message-view__date thread-message__date-compact" datetime="{{ item.message.sent_at|date:'c' }}">{{ item.message|message_sort_time:item.copy|mail_list_date }}</time>
-      <time class="message-view__date thread-message__date-full" datetime="{{ item.message.sent_at|date:'c' }}">{{ item.message|message_sort_time:item.copy|mail_message_datetime }}</time>
-    </div>
-  {% if thread_length > 1 %}
-  </button>
-  {% else %}
-  </header>
-  {% endif %}
-
-  <div
-    class="thread-message__expandable"
-    id="thread-message-body-{{ item.copy.id }}"
-    {% if thread_length > 1 and not item.starts_expanded %}hidden{% endif %}
-  >
+  <div class="chat-bubble">
+    {% if not item.is_outgoing %}
+    <span class="chat-bubble__name">{{ item.message.from_address|mail_display_name }}</span>
+    {% endif %}
+    {% if item.message.subject %}
+    <span class="chat-bubble__subject">{{ item.message.subject }}</span>
+    {% endif %}
+    {% if item.message.body_text_index %}
+    <p class="chat-bubble__text">{{ item.message.body_text_index }}</p>
+    {% endif %}
     {% if item.attachments %}
-    <ul class="message-view__attachments">
+    <ul class="chat-bubble__files">
       {% for att in item.attachments %}
-      <li>
-        <a href="{% url 'mail_attachment' item.copy.id att.id %}">{{ att.filename }}</a>
-        <span class="message-view__attachment-size">({{ att.size_bytes }} bytes)</span>
-      </li>
+      <li><a href="{% url 'mail_attachment' item.copy.id att.id %}">{{ att.filename }}</a></li>
       {% endfor %}
     </ul>
     {% endif %}
-
-    <div class="message-view__body thread-message__body">
-      {% if item.html_body %}
-      <iframe
-        class="message-frame message-frame--inline"
-        sandbox="allow-same-origin"
-        title="Message body"
-        {% if item.starts_expanded or thread_length == 1 %}
-        srcdoc="{{ item.html_body|escape }}"
-        {% else %}
-        data-srcdoc="{{ item.html_body|escape }}"
-        {% endif %}
-      ></iframe>
-      {% if item.is_anchor %}
-      <p class="message-view__load-images"><a href="?load_images=1">Load remote images</a></p>
-      {% endif %}
-      {% else %}
-      <pre class="message-body-pre message-body-pre--inline">{{ item.message.body_text_index }}</pre>
-      {% endif %}
-    </div>
+    <time class="chat-bubble__time">{{ item.message|message_sort_time:item.copy|mail_list_date }}</time>
   </div>
-</section>
+</div>
