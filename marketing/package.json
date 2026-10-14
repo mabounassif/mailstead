@@ -6,7 +6,9 @@
     "dev": "astro dev",
     "build": "astro build && node scripts/postbuild.mjs",
     "preview": "astro preview",
-    "check": "node --test test/*.mjs"
+    "check": "node --test test/*.mjs",
+    "start": "node scripts/serve.mjs",
+    "check:site": "node scripts/check-site.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.6.0",

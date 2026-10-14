@@ -23,3 +23,25 @@ jobs:
 
       - name: Run tests
         run: pytest
+
+
+  marketing:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: marketing
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: marketing/package-lock.json
+      - name: Install marketing dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Check calculator and hosting behavior
+        run: npm run check
+      - name: Build marketing site
+        run: npm run build
+      - name: Verify pages and documentation exports
+        run: npm run check:site

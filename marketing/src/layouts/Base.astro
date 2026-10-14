@@ -42,6 +42,7 @@ const fullTitle = title.includes("Mailstead") ? title : `${title} · Mailstead`;
     <meta name="twitter:image" content={image} />
     <link rel="icon" href="/favicon.png" type="image/png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="help" href="/docs/agent-setup/" />
     <slot name="head" />
   </head>
   <body>
@@ -57,6 +58,19 @@ const fullTitle = title.includes("Mailstead") ? title : `${title} · Mailstead`;
       toggle?.addEventListener("click", () => {
         const open = nav?.classList.toggle("is-open");
         toggle.setAttribute("aria-expanded", open ? "true" : "false");
+      });
+      nav?.addEventListener("click", (event) => {
+        if ((event.target as HTMLElement)?.closest("a")) {
+          nav.classList.remove("is-open");
+          toggle?.setAttribute("aria-expanded", "false");
+        }
+      });
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && nav?.classList.contains("is-open")) {
+          nav.classList.remove("is-open");
+          toggle?.setAttribute("aria-expanded", "false");
+          (toggle as HTMLButtonElement)?.focus();
+        }
       });
       document.addEventListener("click", (event) => {
         const target = event.target as HTMLElement | null;

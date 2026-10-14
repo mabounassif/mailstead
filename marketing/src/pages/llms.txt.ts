@@ -13,6 +13,10 @@ export function GET() {
     `- [Pricing](${site.url}/pricing/)`,
     `- [Compare](${site.url}/compare/)`,
     `- [Guides](${site.url}/guides/)`,
+    `- [Agent setup runbook](${site.url}/docs/agent-setup.md)`,
+    `- [Coding-agent handoff](${site.url}/for-agents/)`,
+    `- [Deployment skill](${site.url}/skills/deploy-mailstead/SKILL.md)`,
+    `- [Full documentation](${site.url}/llms-full.txt)`,
     `- [Repository](${site.repo})`,
     `- [Deploy on Railway](${site.deploy})`,
     "",
@@ -20,7 +24,7 @@ export function GET() {
     "",
     ...articles.map(
       (article) =>
-        `- [${article.title}](${site.url}/${article.section}/${article.slug}/) — sources checked ${article.sourceChecked}`,
+        `- [${article.title}](${site.url}/${article.section}/${article.slug}.md) — HTML: ${site.url}/${article.section}/${article.slug}/ — sources checked ${article.sourceChecked}`,
     ),
     "",
     `Pricing data version checked ${sourceChecked}.`,

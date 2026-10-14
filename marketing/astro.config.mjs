@@ -16,7 +16,8 @@ export default defineConfig({
     sitemap({
       filter: (page) =>
         !page.endsWith(".md") &&
-        !page.includes("/llms.txt") &&
+        !page.endsWith(".txt") &&
+        !page.includes("/skills/") &&
         !page.includes("/404"),
       serialize(item) {
         item.lastmod = contentDates.get(item.url) || "2026-10-14";

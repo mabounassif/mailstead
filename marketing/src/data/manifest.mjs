@@ -1,5 +1,38 @@
 /** Editorial dates. Do not refresh these from the build clock. */
 export const articles = [
+{
+  "slug": "agent-setup",
+  "section": "docs",
+  "title": "Set up custom-domain email with Mailstead",
+  "description": "A complete agent runbook for Railway, Resend, DNS, mailboxes, and verified delivery.",
+  "intent": "Agent deployment and verification runbook.",
+  "published": "2026-10-14",
+  "updated": "2026-10-14",
+  "sourceChecked": "2026-10-14",
+  "author": "mabounassif"
+},
+{
+  "slug": "cloudflare-custom-domain-email",
+  "section": "guides",
+  "title": "Connect Cloudflare DNS to Mailstead and Resend",
+  "description": "Separate mail-domain DNS from the webmail hostname and preserve existing mail routing.",
+  "intent": "Configure Cloudflare DNS for custom-domain mail.",
+  "published": "2026-10-14",
+  "updated": "2026-10-14",
+  "sourceChecked": "2026-10-14",
+  "author": "mabounassif"
+},
+{
+  "slug": "customer-email-inbox",
+  "section": "guides",
+  "title": "Give your project a customer email inbox",
+  "description": "Set up a browser inbox for hello@yourdomain and verify that customers can receive your replies.",
+  "intent": "Set up a project inbox alongside an application.",
+  "published": "2026-10-14",
+  "updated": "2026-10-14",
+  "sourceChecked": "2026-10-14",
+  "author": "mabounassif"
+},
   {
     slug: "custom-domain-email-cost",
     section: "guides",

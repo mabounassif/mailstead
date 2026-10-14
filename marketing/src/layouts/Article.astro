@@ -6,6 +6,7 @@ const { frontmatter } = Astro.props;
 const path = `/${frontmatter.section}/${frontmatter.slug}/`;
 const markdownPath = `/${frontmatter.section}/${frontmatter.slug}.md`;
 const canonical = new URL(path, site.url).href;
+const sectionLabel = frontmatter.section === "compare" ? "Compare" : frontmatter.section === "docs" ? "Documentation" : "Guides";
 const articleLd = {
   "@context": "https://schema.org",
   "@type": "Article",
@@ -25,7 +26,7 @@ const crumbs = {
     {
       "@type": "ListItem",
       position: 2,
-      name: frontmatter.section === "compare" ? "Compare" : "Guides",
+      name: sectionLabel,
       item: `${site.url}/${frontmatter.section}/`,
     },
     { "@type": "ListItem", position: 3, name: frontmatter.h1, item: canonical },
@@ -35,6 +36,7 @@ const crumbs = {
 
 <Base title={frontmatter.title} description={frontmatter.description} path={path}>
   <Fragment slot="head">
+    <link rel="alternate" type="text/markdown" href={markdownPath} title="Markdown version" />
     <script type="application/ld+json" set:html={JSON.stringify(articleLd)} />
     <script type="application/ld+json" set:html={JSON.stringify(crumbs)} />
   </Fragment>
@@ -43,7 +45,7 @@ const crumbs = {
       <p class="crumbs">
         <a href="/">Home</a>
         /
-        <a href={`/${frontmatter.section}/`}>{frontmatter.section === "compare" ? "Compare" : "Guides"}</a>
+        <a href={`/${frontmatter.section}/`}>{sectionLabel}</a>
         / <span>{frontmatter.h1}</span>
       </p>
       <div class="prose">

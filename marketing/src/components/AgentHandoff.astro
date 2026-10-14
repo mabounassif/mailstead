@@ -1,0 +1,33 @@
+---
+const prompt = "Help me set up custom-domain email with Mailstead. Read https://mailstead.app/docs/agent-setup.md first. Check whether it fits my needs, then deploy on Railway with Resend and persistent storage. Distinguish my mail domain from the webmail hostname, preserve existing mail routing, and report any missing access. Verify readiness and real inbound mail plus an outbound reply before calling setup complete. Keep credentials out of chat and source control.";
+---
+
+<div class="agent-handoff" data-handoff>
+  <label for="agent-prompt">Give your coding agent the setup guide</label>
+  <textarea id="agent-prompt" rows="5" readonly>{prompt}</textarea>
+  <div class="actions">
+    <button class="button button-primary" type="button" data-copy-prompt hidden>Copy setup prompt</button>
+    <a class="button button-secondary" href="/docs/agent-setup/" data-track="agent-guide">Read the setup guide</a>
+  </div>
+  <p class="fine" role="status" data-copy-status></p>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>("[data-handoff]").forEach((panel) => {
+    const button = panel.querySelector<HTMLButtonElement>("[data-copy-prompt]");
+    const prompt = panel.querySelector<HTMLTextAreaElement>("textarea");
+    const status = panel.querySelector<HTMLElement>("[data-copy-status]");
+    if (!button || !prompt || !status) return;
+    button.hidden = false;
+    button.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(prompt.value);
+        status.textContent = "Copied. Paste it into your coding agent.";
+      } catch {
+        prompt.focus();
+        prompt.select();
+        status.textContent = "Select and copy the prompt above.";
+      }
+    });
+  });
+</script>
