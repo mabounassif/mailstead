@@ -1,4 +1,5 @@
 from django.urls import path
+from django.views.generic import RedirectView
 
 from mail import views, workspace_views
 
@@ -10,8 +11,11 @@ urlpatterns = [
     path("cards/<int:card_id>/delete/", workspace_views.delete_card, name="workspace_card_delete"),
     path("passwords/", workspace_views.passwords, name="workspace_passwords"),
     path("passwords/<int:entry_id>/delete/", workspace_views.delete_password, name="workspace_password_delete"),
-    path("agents/", workspace_views.agents, name="workspace_agents"),
-    path("agents/<int:agent_id>/delete/", workspace_views.delete_agent, name="workspace_agent_delete"),
+    path("contacts/", workspace_views.contacts, name="workspace_contacts"),
+    path(
+        "agents/",
+        RedirectView.as_view(pattern_name="workspace_contacts", permanent=False),
+    ),
     path("compose/", views.compose, name="mail_compose"),
     path("f/<str:folder>/", views.folder_view, name="mail_folder"),
     path("m/<int:copy_id>/", views.message_detail, name="mail_message"),
