@@ -1,0 +1,12 @@
+---
+description: Mailstead product direction, repository boundary and coding-agent handoff
+alwaysApply: true
+---
+
+Follow AGENTS.md. Read docs/VISION.md, docs/CURSOR_START_HERE.md and ROADMAP.md.
+For integration, read docs/MAILSTEAD_INTEGRATION.md. Mailstead is the conversation
+UI and email/resource adapter; the separate platform owns tasks, runs, authority
+and isolated execution. Preserve standalone setup and mail semantics. Agents
+appear as contacts through the optional bridge, not recreated AgentProfile CRUD.
+Verify current main and dependencies before coding. Deliver one issue with honest
+status, appropriate checks and a reviewable PR; update the handoff as work lands.

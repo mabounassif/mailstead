@@ -1,10 +1,15 @@
 # Roadmap
 
-Mailstead is a self-hosted webmail portal for small teams (about 10–50 users), built on Django and [Resend](https://resend.com). This document is the public plan; use [GitHub Issues](https://github.com/mabounassif/mailstead/issues) for specific work items.
+Mailstead is becoming a conversation workspace for people and agents, starting
+with working self-hosted custom-domain email. Read [the vision](docs/VISION.md)
+and [coding-agent handoff](docs/CURSOR_START_HERE.md). This public app owns the
+interface and mail resources; the separate platform owns agent publication,
+authority and execution. Planned features below are not availability claims.
 
 ## Shipped
 
-- **Mailbox** — Inbox, Sent, Drafts, Archive, Junk, Trash; compose, reply, forward, attachments, search, unread state
+- **Conversations** — Contact/group chat views, optional subjects and subject filters, compose, reply, forward, attachments, search, unread state; mail folders remain underlying records
+- **Navigation** — Messages / Drive / Contacts / Settings; people derived from mail, attachment listing, text-card Wallets and encrypted password entries in Settings. Local AgentProfile removed. No agent installs, payments or credential broker yet.
 - **Mail pipeline** — Resend webhooks, inbound ingest, outbound send, idempotent jobs, reconcile and `import_received`
 - **Filtering** — Local filter rules and junk folder; DMARC-based junk routing
 - **Operations** — `/data` storage ledger, quotas, overflow, ops dashboard; Resend usage snapshots and alert records
@@ -13,6 +18,18 @@ Mailstead is a self-hosted webmail portal for small teams (about 10–50 users),
 - **Account safety** — Bootstrap setup, recovery email, rate limits, session handling
 
 ## Next
+
+1. Platform activation: signup on main, isolated synthetic run + observability
+   (platform #4), then private artifact publication (platform #5).
+2. [#25](https://github.com/mabounassif/mailstead/issues/25): optional bridge with
+   platform #7. Agree contract/fixtures first, then selected-message consent,
+   agent contact, task progress and result in one conversation.
+3. [#26](https://github.com/mabounassif/mailstead/issues/26): align positioning,
+   exports and screenshots with verified product behavior.
+
+The bridge is disabled by default and must preserve standalone deployment.
+Runtime/permission logic belongs in the platform. The existing reliability
+backlog remains valid alongside those product priorities:
 
 | Area | Goal |
 |------|------|

@@ -1,6 +1,10 @@
 # Mailstead
 
-Custom-domain email with a real browser inbox, backed by [Resend](https://resend.com). One Docker service, a persistent data volume, and no Redis, Celery, or separate mail server in the default stack.
+A conversation workspace, starting with working custom-domain email backed by [Resend](https://resend.com). One Docker service, a persistent data volume, and no Redis, Celery, or separate mail server in the default stack.
+
+**Coding agents:** start with [AGENTS.md](AGENTS.md), the [shared vision](docs/VISION.md), and [current handoff](docs/CURSOR_START_HERE.md).
+
+The direction is conversations where people and installed agent contacts work together. This public app owns the human interface and mail resources; a separate private platform owns agent publishing, permissions and isolated execution. The bridge is planned, not available here yet. Standalone email remains supported. See the [integration design](docs/MAILSTEAD_INTEGRATION.md).
 
 <p align="center">
   <img src="docs/assets/screenshots/inbox.png" alt="Mailstead inbox" width="920" />
@@ -10,7 +14,9 @@ Custom-domain email with a real browser inbox, backed by [Resend](https://resend
 
 ## Features
 
-- Inbox, Sent, Drafts, Archive, Junk, Trash — compose, reply, forward, attachments, search
+- Contact and group conversation views with optional subjects, compose, reply, forward, attachments and search; underlying mail folders and delivery records remain
+- Messages / Drive / Contacts / Settings navigation; Drive lists mail attachments, Contacts derives people from existing messages
+- Settings includes text-card Wallets and encrypted password entries; these do not provide payment execution or an agent credential broker
 - Inbound mail via Resend webhooks; outbound via the Resend API
 - Per-mailbox quotas and a Resend usage panel
 - Ops dashboard at `/ops/` (storage, worker, webhooks)
@@ -51,6 +57,8 @@ python manage.py worker
 Full local notes, project layout, and screenshot regen: **[Local development](docs/development.md)**.
 
 ## Screenshots
+
+These captures show earlier mail layouts. Current navigation is Messages / Drive / Contacts / Settings; screenshot refresh is tracked in #26.
 
 <p align="center">
   <img src="docs/assets/screenshots/compose.png" alt="Compose a message" width="920" />
@@ -114,6 +122,9 @@ cd marketing && npm install && npm run build && npm run check
 | [Operations](docs/operations.md) | Backups, Postgres move, quotas |
 | [Railway template](docs/railway-template.md) | Composer JSON, icons, marketplace |
 | [Roadmap](ROADMAP.md) | Shipped vs planned |
+| [Product direction](docs/VISION.md) | Shared vision and repository responsibilities |
+| [Coding-agent handoff](docs/CURSOR_START_HERE.md) | Current baseline, next issues and checks |
+| [Integration design](docs/MAILSTEAD_INTEGRATION.md) | Planned optional agent-contact bridge |
 | [Contributing](CONTRIBUTING.md) | PRs and tests |
 | [Security](SECURITY.md) | Vulnerability reports |
 

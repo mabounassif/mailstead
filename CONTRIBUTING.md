@@ -2,6 +2,11 @@
 
 Thanks for your interest in Mailstead.
 
+Start with [AGENTS.md](AGENTS.md), [product direction](docs/VISION.md), and the
+[coding-agent handoff](docs/CURSOR_START_HERE.md). Platform integration follows
+the [shared design draft](docs/MAILSTEAD_INTEGRATION.md); the public app retains
+its standalone deployment path.
+
 ## Development setup
 
 Follow **[Local development](docs/development.md)** for environment variables, migrations, the worker, tests, and project layout.
