@@ -176,12 +176,3 @@ class VaultEntry(models.Model):
     class Meta:
         ordering = ["label", "id"]
 
-
-class AgentProfile(models.Model):
-    mailbox = models.ForeignKey("accounts.Mailbox", on_delete=models.CASCADE, related_name="agents")
-    name = models.CharField(max_length=80)
-    instructions = models.TextField(blank=True, default="")
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ["name", "id"]

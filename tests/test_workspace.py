@@ -32,7 +32,7 @@ def test_inbox_is_project_chats_and_hides_removed_folders():
     assert ">Drafts<" not in body
     assert ">Archive<" not in body
     assert ">Messages<" in body
-    assert ">Data<" in body
+    assert ">Drive<" in body
     assert ">Wallets<" not in body
     assert ">Junk<" not in body
     assert ">Inbox<" not in body
@@ -41,7 +41,13 @@ def test_inbox_is_project_chats_and_hides_removed_folders():
     assert "Contacts are listed under Messages." not in body
     assert ">Passwords<" not in body
     assert 'aria-label="Settings"' in body
-    assert ">Agents<" in body
+    assert ">Contacts<" in body
+    contacts_page = client.get("/mail/contacts/")
+    contacts_body = contacts_page.content.decode()
+    assert contacts_page.status_code == 200
+    assert "Ada" in contacts_body
+    assert "ada@example.com" in contacts_body
+    assert ">Agents<" not in contacts_body
     assert not Project.objects.filter(mailbox=mailbox, name="General").exists()
     contact = client.get("/mail/?contact=ada@example.com")
     assert contact.status_code == 200

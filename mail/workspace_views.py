@@ -10,7 +10,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 
-from mail.models import AgentProfile, Card, MessageAttachment, Project, VaultEntry
+from mail.chats import contact_chats
+from mail.models import Card, MessageAttachment, Project, VaultEntry
 from mail.views import _mailbox_or_notice
 from provider.crypto import decrypt, encrypt
 from storage.capacity import physical_capacity
@@ -164,34 +165,15 @@ def delete_password(request: HttpRequest, entry_id: int) -> HttpResponse:
 
 
 @login_required
-def agents(request: HttpRequest) -> HttpResponse:
+def contacts(request: HttpRequest) -> HttpResponse:
     mailbox, notice = _workspace_or_notice(request)
     if notice is not None:
         return notice
-    if request.method == "POST":
-        name = (request.POST.get("name") or "").strip()
-        instructions = (request.POST.get("instructions") or "").strip()
-        if not name:
-            messages.error(request, "An agent needs a name.")
-        else:
-            AgentProfile.objects.create(mailbox=mailbox, name=name[:80], instructions=instructions)
-            return redirect("workspace_agents")
     return render(
         request,
-        "mail/agents.html",
-        {"active_nav": "agents", "agents": AgentProfile.objects.filter(mailbox=mailbox)},
+        "mail/contacts.html",
+        {"active_nav": "contacts", "contacts": contact_chats(mailbox)},
     )
-
-
-@login_required
-@require_POST
-def delete_agent(request: HttpRequest, agent_id: int) -> HttpResponse:
-    mailbox, notice = _workspace_or_notice(request)
-    if notice is not None:
-        return notice
-    agent = get_object_or_404(AgentProfile, pk=agent_id, mailbox=mailbox)
-    agent.delete()
-    return redirect("workspace_agents")
 
 
 @login_required

@@ -1,0 +1,28 @@
+{% extends "mail/base_mail.html" %}
+{% load mail_extras %}
+{% block title %}Contacts — Mailstead{% endblock %}
+{% block mail_content %}
+<div class="mail-pane mail-pane--list workspace-page">
+  <div class="mail-list-toolbar">
+    <h1 class="mail-list-toolbar__title">Contacts</h1>
+    <p class="mail-list-toolbar__subtitle">People you message on this server.</p>
+  </div>
+  <ul class="workspace-list">
+    {% for contact in contacts %}
+    <li class="workspace-list__item">
+      <a class="contact-row" href="{% url 'mail_inbox' %}?contact={{ contact.address }}">
+        <span class="contact-row__avatar" aria-hidden="true">{{ contact.who|mail_avatar_initial }}</span>
+        <span class="contact-row__body">
+          <span class="contact-row__name">{{ contact.who|mail_display_name }}</span>
+          <span class="contact-row__preview">{{ contact.who|mail_address_only }}</span>
+        </span>
+      </a>
+    </li>
+    {% empty %}
+    <li class="workspace-list__empty">
+      <p class="empty-state">No contacts yet. People you message show up here.</p>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}
