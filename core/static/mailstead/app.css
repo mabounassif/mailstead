@@ -2512,6 +2512,10 @@ body.mail-app .nav-toggle {
   height: 1.35rem;
 }
 
+.rail-btn--tab {
+  display: none;
+}
+
 .rail-btn:hover {
   background: #e8eaed;
   color: #202124;
@@ -2775,6 +2779,10 @@ body.mail-app .nav-toggle {
     z-index: 50;
     height: var(--tab-h);
     flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    gap: 0;
+    padding: 0.2rem 0.1rem 0.35rem;
     border-right: none;
     border-top: 1px solid #e6eaf0;
     background: #fff;
@@ -2789,6 +2797,10 @@ body.mail-app .nav-toggle {
 
   .workspace-rail__extra {
     display: none;
+  }
+
+  .rail-btn--tab {
+    display: inline-flex;
   }
 
   .rail-btn {

@@ -1,0 +1,7 @@
+<nav class="ops-subnav" aria-label="Settings">
+  <span class="ops-subnav__links">
+    <a href="{% url 'notifications_settings' %}"{% if settings_section == 'notifications' %} class="is-active"{% endif %}>Notifications</a>
+    <a href="{% url 'workspace_cards' %}"{% if settings_section == 'wallets' %} class="is-active"{% endif %}>Wallets</a>
+    <a href="{% url 'workspace_passwords' %}"{% if settings_section == 'passwords' %} class="is-active"{% endif %}>Passwords</a>
+  </span>
+</nav>
