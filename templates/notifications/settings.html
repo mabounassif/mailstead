@@ -1,8 +1,9 @@
 {% extends "mail/base_mail.html" %}
 {% load static %}
-{% block title %}Notifications · Mailstead{% endblock %}
+{% block title %}Settings · Mailstead{% endblock %}
 {% block extra_head %}{% endblock %}
 {% block mail_content %}
+  {% include "partials/settings_subnav.html" %}
   <h1 class="page-title">Notifications</h1>
 
   {% if push_keys_invalid %}

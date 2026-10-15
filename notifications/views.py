@@ -99,7 +99,8 @@ def settings_page(request: HttpRequest) -> HttpResponse:
             "push_configured": push_configured(),
             "push_keys_invalid": push_keys_present() and not push_configured(),
             "vapid_public_key": settings.VAPID_PUBLIC_KEY,
-            "active_nav": "notifications",
+            "active_nav": "settings",
+            "settings_section": "notifications",
         },
     )
 

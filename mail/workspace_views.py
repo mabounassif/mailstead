@@ -84,7 +84,11 @@ def cards(request: HttpRequest) -> HttpResponse:
     return render(
         request,
         "mail/cards.html",
-        {"active_nav": "cards", "cards": Card.objects.filter(mailbox=mailbox)},
+        {
+            "active_nav": "settings",
+            "settings_section": "wallets",
+            "cards": Card.objects.filter(mailbox=mailbox),
+        },
     )
 
 
@@ -140,7 +144,11 @@ def passwords(request: HttpRequest) -> HttpResponse:
     return render(
         request,
         "mail/passwords.html",
-        {"active_nav": "passwords", "entries": entries},
+        {
+            "active_nav": "settings",
+            "settings_section": "passwords",
+            "entries": entries,
+        },
     )
 
 
