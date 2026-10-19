@@ -10,16 +10,59 @@ from mail.email_headers import reference_ids
 from mail.models import Folder, Message, MessageCopy, OutboundMessage
 
 _RE_PREFIX = re.compile(r"^(re|fwd|fw)\s*:\s*", re.IGNORECASE)
+BLANK_TOPIC = "__blank__"
+_GENERIC_TOPICS = {"(no subject)", "no subject", "untitled"}
+
+
+def _strip_was_clauses(subject: str) -> str:
+    s = (subject or "").strip()
+    while s.endswith(")"):
+        depth = 0
+        start = None
+        for index in range(len(s) - 1, -1, -1):
+            char = s[index]
+            if char == ")":
+                depth += 1
+            elif char == "(":
+                depth -= 1
+                if depth == 0:
+                    start = index
+                    break
+        if start is None:
+            break
+        inner = s[start + 1 : -1].strip()
+        if not inner.lower().startswith("was:"):
+            break
+        s = s[:start].strip()
+    return s
+
+
+def _strip_reply_prefixes(subject: str) -> str:
+    s = (subject or "").strip()
+    while True:
+        match = _RE_PREFIX.match(s)
+        if not match:
+            break
+        s = s[match.end() :].strip()
+    return s
+
+
+def display_topic(subject: str) -> str:
+    return _strip_reply_prefixes(_strip_was_clauses(subject))
 
 
 def normalized_subject(subject: str) -> str:
-    s = (subject or "").strip()
-    while True:
-        m = _RE_PREFIX.match(s)
-        if not m:
-            break
-        s = s[m.end() :].strip()
-    return s.casefold()
+    return display_topic(subject).casefold()
+
+
+def topic_key(subject: str) -> str:
+    norm = normalized_subject(subject)
+    return norm if norm else BLANK_TOPIC
+
+
+def topic_is_generic(subject: str) -> bool:
+    norm = normalized_subject(subject)
+    return not norm or norm in _GENERIC_TOPICS
 
 
 def effective_message_id(message: Message) -> str:
@@ -86,8 +129,28 @@ def _dedupe_copies(copies: list[MessageCopy]) -> list[MessageCopy]:
     return out
 
 
+def reference_chain(message: Message) -> str:
+    ordered: list[str] = []
+    for token in reference_ids(message.references_text, message.in_reply_to, effective_message_id(message)):
+        if token not in ordered:
+            ordered.append(token)
+    return " ".join(ordered[-25:])
+
+
 def thread_copies(anchor: MessageCopy) -> list[MessageCopy]:
     mailbox = anchor.mailbox
+    conversation = anchor.message.conversation
+    if conversation is not None and conversation.mailbox_id == mailbox.id:
+        copies = _dedupe_copies(
+            list(
+                MessageCopy.objects.filter(mailbox=mailbox, message__conversation=conversation).select_related(
+                    "message"
+                )
+            )
+        )
+        copies.sort(key=lambda c: c.message.sent_at or c.created_at)
+        return copies or [anchor]
+
     seed = _ids_for_message(anchor.message)
     ids = expand_thread_ids(mailbox, seed)
 

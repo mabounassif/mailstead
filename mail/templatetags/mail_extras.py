@@ -1,12 +1,33 @@
 from __future__ import annotations
 
+import re
 from datetime import datetime
 from email.utils import parseaddr
+from pathlib import Path
 
 from django import template
 from django.utils import timezone
+from django.utils.safestring import mark_safe
 
 register = template.Library()
+
+_ICON_DIR = Path(__file__).resolve().parents[2] / "core" / "static" / "mailstead" / "icons"
+_ICON_CACHE: dict[str, str] = {}
+
+
+@register.simple_tag
+def icon(name: str) -> str:
+    """Inline a Lucide icon from core/static/mailstead/icons."""
+    cached = _ICON_CACHE.get(name)
+    if cached is None:
+        raw = (_ICON_DIR / f"{name}.svg").read_text()
+        raw = re.sub(r"<!--.*?-->", "", raw, flags=re.S).strip()
+        raw = re.sub(r'\sclass="lucide[^"]*"', "", raw, count=1)
+        raw = re.sub(r'\s(?:width|height)="24"', "", raw)
+        raw = raw.replace("<svg", '<svg class="icon" aria-hidden="true"', 1)
+        cached = raw
+        _ICON_CACHE[name] = cached
+    return mark_safe(cached)
 
 
 @register.filter

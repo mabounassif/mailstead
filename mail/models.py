@@ -42,6 +42,13 @@ class Message(models.Model):
     auth_dmarc = models.CharField(max_length=32, blank=True, default="")
     body_text_index = models.TextField(blank=True, default="")
     portal_tag = models.CharField(max_length=64, blank=True, default="")
+    conversation = models.ForeignKey(
+        "mail.Conversation",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="messages",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -67,6 +74,56 @@ class Project(models.Model):
 
     def __str__(self) -> str:
         return self.name
+
+
+class Conversation(models.Model):
+    mailbox = models.ForeignKey("accounts.Mailbox", on_delete=models.CASCADE, related_name="conversations")
+    topic = models.CharField(max_length=998, blank=True, default="")
+    topic_key = models.CharField(max_length=998, blank=True, default="", db_index=True)
+    project = models.ForeignKey(
+        Project, on_delete=models.SET_NULL, null=True, blank=True, related_name="conversations"
+    )
+    spun_from = models.ForeignKey(
+        "self", on_delete=models.SET_NULL, null=True, blank=True, related_name="spinoffs"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["mailbox", "topic_key"]),
+        ]
+
+
+class ConversationParticipant(models.Model):
+    class Kind(models.TextChoices):
+        TO = "to", "To"
+        CC = "cc", "Cc"
+
+    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name="participants")
+    address = models.CharField(max_length=320)
+    display_name = models.CharField(max_length=320, blank=True, default="")
+    kind = models.CharField(max_length=8, choices=Kind.choices, default=Kind.CC)
+    active = models.BooleanField(default=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["conversation", "address"], name="uniq_conversation_participant"),
+        ]
+
+
+class ConversationEvent(models.Model):
+    class Kind(models.TextChoices):
+        ADDED = "added", "Added"
+        DROPPED = "dropped", "Dropped"
+
+    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name="events")
+    kind = models.CharField(max_length=16, choices=Kind.choices)
+    address = models.CharField(max_length=320, blank=True, default="")
+    body = models.TextField(blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at", "id"]
 
 
 class MessageCopy(models.Model):

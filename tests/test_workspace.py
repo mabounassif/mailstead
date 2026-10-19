@@ -73,13 +73,41 @@ def test_new_message_starts_with_unspecified_destination():
     page = client.get("/mail/?new=1")
     body = page.content.decode()
     assert page.status_code == 200
-    assert "New message" in body
-    assert "Unspecified" in body
-    posted = client.post("/mail/?new=1", {"body": "Hello there", "to": ""})
+    assert "Subject:" in body
+    assert 'placeholder="Set channel name"' in body
+    assert 'name="subject"' in body
+    assert "New channel" not in body
+    posted = client.post("/mail/?new=1", {"body": "Hello there", "to": "", "subject": "Launch"})
     posted_body = posted.content.decode()
     assert posted.status_code == 200
     assert "Hello there" in posted_body
-    assert "unspecified" in posted_body.lower()
+    assert "participant" in posted_body.lower()
+
+
+@pytest.mark.django_db
+def test_create_channel_with_title_participants_and_message():
+    User = get_user_model()
+    user = User.objects.create_user("u1", password="x")
+    Mailbox.objects.create(user=user, address="a@mail.test")
+    client = Client()
+    client.post("/accounts/login/", {"username": "u1", "password": "x"})
+    with mock.patch("mail.views.send_compose") as send:
+        sent = client.post(
+            "/mail/?new=1",
+            {
+                "subject": "Launch",
+                "to": "ada@example.com, bob@example.com",
+                "body": "We are go.",
+            },
+        )
+    assert sent.status_code == 302
+    assert "channel=" in sent.url
+    kwargs = send.call_args.kwargs
+    assert kwargs["subject"] == "Launch"
+    assert kwargs["to"] == ["ada@example.com", "bob@example.com"]
+    from mail.models import Conversation
+
+    assert Conversation.objects.filter(topic="Launch").exists()
 
 
 @pytest.mark.django_db
@@ -103,44 +131,37 @@ def test_contact_subject_filter_and_optional_subject():
     client = Client()
     client.post("/accounts/login/", {"username": "u1", "password": "x"})
 
+    from mail.models import Conversation
+
     everything = client.get("/mail/?contact=ada@example.com")
     everything_body = everything.content.decode()
-    assert "All subjects" in everything_body
-    assert "Filter by subject" in everything_body
-    assert 'aria-label="Back to messages"' in everything_body
-    assert 'name="q"' in everything_body
-    assert "Tuesday works." in everything_body
-    assert "Please pay." in everything_body
-    assert 'placeholder="Subject (optional)"' in everything_body
+    assert "Direct messages" in everything_body
+    assert "Channels" in everything_body
+    assert "Roadmap" in everything_body
+    assert "Invoice" in everything_body
+    assert "All subjects" not in everything_body
+    assert 'placeholder="Topic"' not in everything_body
     assert 'name="body"' in everything_body
 
-    invoice = client.get("/mail/?contact=ada@example.com&thread=invoice")
+    roadmap = Conversation.objects.get(topic_key="roadmap")
+    invoice = client.get(f"/mail/?channel={roadmap.id}")
     invoice_body = invoice.content.decode()
-    assert "Please pay." in invoice_body
-    assert "Tuesday works." not in invoice_body
-    assert 'value="Invoice"' in invoice_body
+    assert "Tuesday works." in invoice_body
+    assert 'chat-bubble__text">Please pay.' not in invoice_body
+    assert 'name="subject"' in invoice_body
+    assert 'placeholder="Topic"' not in invoice_body
 
     with mock.patch("mail.views.send_compose") as send:
         sent = client.post(
-            "/mail/?contact=ada@example.com&thread=roadmap",
-            {"body": "See you then", "subject": "Re: Roadmap"},
+            f"/mail/?channel={roadmap.id}",
+            {"body": "See you then"},
         )
     assert sent.status_code == 302
-    assert "thread=roadmap" in sent.url
+    assert f"channel={roadmap.id}" in sent.url
     kwargs = send.call_args.kwargs
     assert kwargs["subject"] == "Re: Roadmap"
     assert kwargs["to"] == ["ada@example.com"]
     assert kwargs["in_reply_to"] == "<roadmap@example.com>"
-
-    with mock.patch("mail.views.send_compose") as send:
-        blank = client.post(
-            "/mail/?contact=ada@example.com",
-            {"body": "No subject line", "subject": ""},
-        )
-    assert blank.status_code == 302
-    assert "thread=" not in blank.url
-    assert send.call_args.kwargs["subject"] == ""
-    assert "in_reply_to" not in send.call_args.kwargs
 
 
 @pytest.mark.django_db

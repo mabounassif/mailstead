@@ -1,78 +1,40 @@
 {% extends "mail/base_mail.html" %}
 {% load mail_extras %}
-{% block title %}{% if mode == 'group' %}{{ selected_project.name }}{% elif mode == 'new' %}New message{% elif mode == 'contact' %}{{ contact_label|mail_display_name }}{% else %}Messages{% endif %} — Mailstead{% endblock %}
+{% block title %}{% if mode == 'group' %}{{ selected_project.name }}{% elif mode == 'new' %}New message{% elif mode == 'channel' %}{{ contact_label }}{% elif mode == 'dm' or mode == 'contact' %}{{ contact_label }}{% else %}Messages{% endif %} — Mailstead{% endblock %}
 {% block mail_content %}
 <div class="mail-pane mail-pane--list">
   <section class="chat-pane" aria-label="{% if mode == 'group' %}{{ selected_project.name }}{% elif mode == 'contact' %}{{ contact_label|mail_display_name }}{% else %}Messages{% endif %}">
-    {% if mode == 'contact' or mode == 'group' or mode == 'new' %}
-    <div class="thread-header">
-      <a class="thread-back" href="{% url 'mail_inbox' %}" aria-label="Back to messages">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M14.5 6 8.5 12l6 6"/>
-        </svg>
-      </a>
-      <div class="thread-header__center">
-        {% if mode == 'new' %}
-        <span class="thread-header__avatar" aria-label="New message">+</span>
-        {% elif mode == 'group' %}
-        <span class="thread-header__avatar thread-header__avatar--group" aria-label="{{ selected_project.name }}">{{ selected_project.name|mail_avatar_initial }}</span>
-        {% else %}
-        <span class="thread-header__avatar" aria-label="{{ contact_label|mail_display_name }}">{{ contact_label|mail_avatar_initial }}</span>
-        {% endif %}
-      </div>
-      {% if subject_options %}
-      <details class="subject-filter{% if thread_filter %} is-on{% endif %}">
-        <summary aria-label="{% if thread_filter %}Subjects, filtered. Clear or change.{% else %}Filter by subject{% endif %}">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M4 5h16l-6.2 7.2V19l-3.6 1.6v-8.4L4 5z"/>
-          </svg>
-        </summary>
-        <div class="subject-filter__menu" role="list">
-          <a role="listitem" href="{{ chat_base_url }}"{% if not thread_filter %} aria-current="true"{% endif %}>All subjects</a>
-          {% for option in subject_options %}
-          <a role="listitem" href="{{ chat_base_url }}&amp;thread={{ option.value|urlencode }}"{% if thread_filter == option.value %} aria-current="true"{% endif %}>{{ option.label }}</a>
-          {% endfor %}
-          {% if thread_filter %}
-          <a class="subject-filter__clear" role="listitem" href="{{ chat_base_url }}">Clear filter</a>
-          {% endif %}
-        </div>
-      </details>
-      {% else %}
-      <span class="thread-header__end" aria-hidden="true"></span>
-      {% endif %}
-    </div>
-    {% endif %}
     {% if mode == 'new' %}
-    <form class="new-chat" method="post" action="{% url 'mail_inbox' %}?new=1">
+    <form class="new-chat slack-compose" method="post" action="{% url 'mail_inbox' %}?new=message" data-new-message data-people-only>
       {% csrf_token %}
-      <label class="chat-to">
-        <span class="chat-to__label">To</span>
-        <input type="text" name="to" value="{{ draft_to }}" placeholder="Unspecified" autocomplete="off">
+      <header class="slack-compose__head slack-compose__head--back">
+        <a class="thread-back" href="{% url 'mail_inbox' %}" aria-label="Back to messages">
+          {% icon "chevron-left" %}
+        </a>
+      </header>
+      <label class="slack-compose__to">
+        <span class="slack-compose__to-label">Subject:</span>
+        <input class="slack-compose__input" type="text" name="subject" value="{{ draft_subject|default:'' }}" placeholder="Set channel name" maxlength="998" autocomplete="off">
       </label>
-      <div class="chat-thread">
-        {% if draft_body %}
-        <div class="chat-bubble-row is-out">
-          <div class="chat-bubble">
-            {% if draft_subject %}
-            <span class="chat-bubble__subject">{{ draft_subject }}</span>
-            {% endif %}
-            <p class="chat-bubble__text">{{ draft_body }}</p>
-          </div>
+      <div class="slack-compose__to">
+        <span class="slack-compose__to-label">To:</span>
+        <div class="slack-compose__to-field">
+          <ul class="slack-compose__chips"></ul>
+          <input class="slack-compose__input slack-compose__to-input" type="text" placeholder="Add participants" autocomplete="off" aria-label="To">
+          <ul class="slack-compose__suggest" role="listbox" hidden></ul>
         </div>
-        {% else %}
-        <p class="chat-empty">Destination is unspecified.</p>
-        {% endif %}
       </div>
-      <div class="chat-compose">
-        <label class="chat-compose__subject">
-          <span class="visually-hidden">Subject</span>
-          <input type="text" name="subject" value="{{ draft_subject|default:'' }}" placeholder="Subject (optional)" maxlength="998" autocomplete="off">
-        </label>
-        <div class="chat-compose__row">
-          <label class="visually-hidden" for="chat-compose-body">Message</label>
-          <textarea id="chat-compose-body" name="body" rows="1" placeholder="Message" required>{{ draft_body }}</textarea>
-          <button type="submit" class="btn btn-primary">Send</button>
-        </div>
+      <input type="hidden" name="to" value="{{ draft_to }}">
+      <ul class="slack-compose__targets" hidden>
+        {% for person in nav_people %}
+        <li data-kind="person" data-id="{{ person.address }}" data-label="{{ person.label }}"></li>
+        {% endfor %}
+      </ul>
+      <div class="slack-compose__canvas"></div>
+      <div class="slack-compose__bar">
+        <label class="visually-hidden" for="new-channel-body">Message</label>
+        <textarea id="new-channel-body" name="body" rows="1" placeholder="Write a message" required>{{ draft_body }}</textarea>
+        <button type="submit" class="slack-compose__send" aria-label="Send">{% icon "send" %}</button>
       </div>
     </form>
     {% elif mode == 'contacts' %}
@@ -214,15 +176,76 @@
       <p class="mail-idle__hint">Pick someone on the left to read and reply.</p>
     </div>
     {% else %}
+    {% if participants or can_compose %}
+    <div class="members" data-members>
+      <a class="thread-back members__back" href="{% url 'mail_inbox' %}" aria-label="Back to messages">
+        {% icon "chevron-left" %}
+      </a>
+      <button type="button" class="members__toggle" aria-expanded="false" aria-controls="members-panel">
+        <span class="members__faces" aria-hidden="true">
+          {% for person in participants|slice:":3" %}
+          <span class="members__face">{% if person.display_name %}{{ person.display_name|slice:":1"|upper }}{% else %}{{ person.address|mail_avatar_initial }}{% endif %}</span>
+          {% empty %}
+          <span class="members__face members__face--add" aria-hidden="true">+</span>
+          {% endfor %}
+          {% if participants|length > 3 %}
+          <span class="members__face members__face--more">+{{ participants|length|add:"-3" }}</span>
+          {% endif %}
+        </span>
+        <span class="members__count">
+          {% if participants %}
+          {{ participants|length }} {% if participants|length == 1 %}person{% else %}people{% endif %}
+          {% else %}
+          Add people
+          {% endif %}
+        </span>
+      </button>
+      <div id="members-panel" class="members__panel" hidden>
+        <button type="button" class="members__backdrop" data-members-close aria-label="Close people"></button>
+        <div class="members__sheet" role="dialog" aria-label="People">
+          <div class="members__grabber" aria-hidden="true"></div>
+          <div class="members__sheet-head">
+            <h2>People</h2>
+            <button type="button" class="members__close" data-members-close aria-label="Close">
+              {% icon "x" %}
+            </button>
+          </div>
+          {% if can_compose %}
+          <div class="members__add">
+            <label class="visually-hidden" for="members-search">Add people</label>
+            <input id="members-search" class="members__search" type="text" placeholder="Add by name or email" autocomplete="off">
+            <button type="button" class="members__add-btn">Add</button>
+            <ul class="members__suggest" hidden></ul>
+          </div>
+          <ul class="members__pending" hidden></ul>
+          {% endif %}
+          <ul class="members__list">
+            {% for person in participants %}
+            <li class="members__row">
+              <span class="members__face" aria-hidden="true">{% if person.display_name %}{{ person.display_name|slice:":1"|upper }}{% else %}{{ person.address|mail_avatar_initial }}{% endif %}</span>
+              <span class="members__meta">
+                <span class="members__name{% if not person.display_name %} members__name--local{% endif %}">{% if person.display_name %}{{ person.display_name }}{% else %}{{ person.address|mail_display_name }}{% endif %}</span>
+                <span class="members__email">{{ person.address }}</span>
+              </span>
+              {% if person.kind == 'cc' and can_compose %}
+              <button type="submit" class="members__remove" name="drop" value="{{ person.address }}" form="chat-compose-form" formnovalidate>Remove</button>
+              {% endif %}
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+    {% endif %}
     <div class="chat-thread" aria-live="polite">
       {% for chat in chats %}
+      {% if chat.kind == "event" %}
+      <div class="chat-system" role="status">{{ chat.body }}</div>
+      {% else %}
       <div class="chat-bubble-row{% if chat.outgoing %} is-out{% else %} is-in{% endif %}">
         <div class="chat-bubble">
           {% if mode == 'group' and not chat.outgoing %}
           <span class="chat-bubble__name">{{ chat.who|mail_display_name }}</span>
-          {% endif %}
-          {% if show_subjects and chat.title and chat.title != "(no subject)" %}
-          <span class="chat-bubble__subject">{{ chat.title }}</span>
           {% endif %}
           {% if chat.preview %}
           <p class="chat-bubble__text">{{ chat.preview }}</p>
@@ -230,22 +253,20 @@
           <time class="chat-bubble__time">{{ chat.sort_at|mail_list_date }}</time>
         </div>
       </div>
+      {% endif %}
       {% empty %}
       <p class="chat-empty">{% if mode == 'group' %}No messages in this group yet.{% else %}No messages yet.{% endif %}</p>
       {% endfor %}
     </div>
     {% if can_compose %}
-    <form class="chat-compose" method="post">
+    <form id="chat-compose-form" class="slack-compose__bar" method="post"{% if mode == 'dm' and active_dm %} action="{% url 'mail_inbox' %}?dm={{ active_dm|urlencode }}"{% elif open_channel %} action="{% url 'mail_inbox' %}?channel={{ open_channel }}"{% endif %}>
       {% csrf_token %}
-      <label class="chat-compose__subject">
-        <span class="visually-hidden">Subject</span>
-        <input type="text" name="subject" value="{{ compose_subject }}" placeholder="Subject (optional)" maxlength="998" autocomplete="off">
-      </label>
-      <div class="chat-compose__row">
-        <label class="visually-hidden" for="chat-compose-body">Message</label>
-        <textarea id="chat-compose-body" name="body" rows="1" placeholder="Message" required></textarea>
-        <button type="submit" class="btn btn-primary">Send</button>
-      </div>
+      <input type="hidden" name="subject" value="{{ compose_subject }}">
+      <input type="hidden" name="add" id="chat-add-people" value="">
+      <label class="visually-hidden" for="chat-compose-body">Message</label>
+      <textarea id="chat-compose-body" name="body" rows="1" placeholder="Message" required data-known="{{ known_addresses|join:',' }}"></textarea>
+      <button type="submit" class="slack-compose__send" aria-label="Send">{% icon "send" %}</button>
+      <div id="mention-hint" class="mention-hint" hidden></div>
     </form>
     {% endif %}
     {% endif %}
