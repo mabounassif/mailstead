@@ -1,4 +1,7 @@
 {% load mail_extras %}
+{% if item.kind == "event" %}
+<div class="chat-system" role="status">{{ item.body }}</div>
+{% else %}
 <div
   class="chat-bubble-row thread-message{% if item.is_outgoing %} is-out thread-message--outgoing{% else %} is-in{% endif %}{% if is_last %} thread-message--last{% endif %}"
   id="thread-message-{{ item.copy.id }}"
@@ -23,3 +26,4 @@
     <time class="chat-bubble__time">{{ item.message|message_sort_time:item.copy|mail_list_date }}</time>
   </div>
 </div>
+{% endif %}

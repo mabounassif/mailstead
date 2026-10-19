@@ -87,6 +87,9 @@ def build_outbound_payload(
 def reply_all_recipients(copy: MessageCopy, mailbox) -> tuple[list[str], list[str], list[str]]:
     """Return to, cc, bcc for reply-all; BCC only when present on sender copy."""
     msg = copy.message
+    conversation = msg.conversation
+    if conversation is not None and conversation.mailbox_id == copy.mailbox_id:
+        return _reply_all_from_conversation(copy, mailbox)
     own = {mailbox.address.lower()}
     for alias in Alias.objects.filter(mailbox=mailbox, is_active=True):
         own.add(alias.address.lower())
@@ -114,6 +117,33 @@ def reply_all_recipients(copy: MessageCopy, mailbox) -> tuple[list[str], list[st
             if field.strip():
                 add_unique(bcc_list, seen, field)
     return to_list, cc_list, bcc_list
+
+
+def _reply_all_from_conversation(copy: MessageCopy, mailbox) -> tuple[list[str], list[str], list[str]]:
+    """Active participants only. Dropped addresses stay off To, Cc, and Bcc."""
+    from mail.conversations import bare_address
+    from mail.threading import mailbox_from_addresses
+
+    msg = copy.message
+    own = mailbox_from_addresses(mailbox)
+    inactive = set(msg.conversation.participants.filter(active=False).values_list("address", flat=True))
+
+    def add_unique(target: list[str], seen: set[str], raw: str) -> None:
+        addr = bare_address(raw)
+        if not addr or addr in seen or addr in own or addr in inactive:
+            return
+        seen.add(addr)
+        target.append(addr)
+
+    to_list: list[str] = []
+    cc_list: list[str] = []
+    seen: set[str] = set()
+    add_unique(to_list, seen, msg.reply_to or msg.from_address)
+    for part in msg.conversation.participants.filter(active=True).order_by("id"):
+        add_unique(cc_list, seen, part.address)
+    if not to_list and cc_list:
+        to_list.append(cc_list.pop(0))
+    return to_list, cc_list, []
 
 
 def send_compose(mailbox, **kwargs):

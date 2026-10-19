@@ -6,37 +6,37 @@
   <div class="message-view">
     <div class="message-view__toolbar" role="toolbar" aria-label="Message actions">
       <a class="message-view__tool" href="{{ back_url }}" aria-label="Back to {{ back_label }}">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+        {% icon "arrow-left" %}
       </a>
       <span class="message-view__toolbar-sep" aria-hidden="true"></span>
       {% if copy.folder == 'trash' %}
       <a class="message-view__tool" href="{% url 'mail_restore' copy.id %}" aria-label="Restore">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M12.5 8c-2.65 0-5.05 1.04-6.9 2.9L2 7v9h9l-3.62-3.62c1.39-1.39 3.3-2.26 5.42-2.26 4.14 0 7.5 3.36 7.5 7.5s-3.36 7.5-7.5 7.5c-3.05 0-5.69-1.83-6.89-4.45l-1.93.79C4.95 20.36 8.32 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2c-2.76 0-5.26 1.12-7.07 2.93l1.41 1.41C7.74 4.84 10.02 4 12.5 4 16.64 4 20 7.36 20 11.5S16.64 19 12.5 19c-2.09 0-4.02-.76-5.5-2.01l1.41-1.41c1.12.9 2.54 1.44 4.09 1.44 3.59 0 6.5-2.91 6.5-6.5S16.09 5 12.5 5z"/></svg>
+        {% icon "archive-restore" %}
       </a>
       <form method="post" action="{% url 'mail_purge' copy.id %}" class="message-view__tool-form">
         {% csrf_token %}
         <button type="submit" class="message-view__tool" aria-label="Delete permanently">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+          {% icon "trash-2" %}
         </button>
       </form>
       {% else %}
       <a class="message-view__tool" href="{% url 'mail_trash' copy.id %}" aria-label="Delete">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+        {% icon "trash-2" %}
       </a>
       <a class="message-view__tool" href="{% url 'mail_junk' copy.id %}" aria-label="Report spam">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+        {% icon "circle-alert" %}
       </a>
       {% endif %}
       <a class="message-view__tool" href="{% url 'mail_export' copy.id %}" aria-label="Download message">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+        {% icon "download" %}
       </a>
     </div>
 
     <article class="message-view__thread">
       <header class="message-view__thread-head">
         <h1 class="message-view__subject">{{ message.subject|default:"(no subject)" }}</h1>
-        {% if thread|length > 1 %}
-        <p class="message-view__thread-count">{{ thread|length }} messages</p>
+        {% if thread_message_count > 1 %}
+        <p class="message-view__thread-count">{{ thread_message_count }} messages</p>
         {% endif %}
       </header>
 

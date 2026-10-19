@@ -14,6 +14,8 @@ from mail.threading import normalized_subject, thread_copies
 def test_normalized_subject_strips_replies():
     assert normalized_subject("Re: Hello") == "hello"
     assert normalized_subject("RE: Fwd: Hi") == "hi"
+    assert normalized_subject("Re: Plans (was: Budget)") == "plans"
+    assert normalized_subject("New (was: Old (was: Older))") == "new"
 
 
 @pytest.mark.django_db

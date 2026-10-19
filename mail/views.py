@@ -20,19 +20,32 @@ from mail.chats import (
     contact_chats,
     contact_key,
     contact_messages,
+    conversation_for_people,
+    direct_message_for_people,
+    conversation_messages,
     counterparty,
     detach_catchall,
-    filter_thread,
     group_messages,
-    reply_target,
-    subject_options,
+    people_key,
+    people_label,
     thread_value,
 )
 from mail.compose import reply_all_recipients, send_compose
-from mail.threading import copy_is_outgoing, effective_message_id, thread_copies
+from mail.conversations import (
+    active_cc_addresses,
+    attach_to_parent,
+    conversation_for_topic,
+    discard_failed_spec,
+    ensure_mailbox_conversations,
+    finalize_chat_send,
+    known_addresses,
+    plan_chat_send,
+    with_events,
+)
+from mail.threading import copy_is_outgoing, effective_message_id, reference_chain, thread_copies, topic_is_generic, topic_key
 from mail.deletion import empty_trash, move_to_trash, purge_message_copy, restore_from_trash
 from accounts.models import Mailbox
-from mail.models import Folder, Message, MessageAttachment, MessageCopy, Project
+from mail.models import Conversation, ConversationEvent, Folder, Message, MessageAttachment, MessageCopy, Project
 
 SHA256_RE = re.compile(r"^[a-f0-9]{64}$")
 
@@ -85,6 +98,7 @@ def _thread_items(
         msg = thread_copy.message
         items.append(
             {
+                "kind": "message",
                 "copy": thread_copy,
                 "message": msg,
                 "html_body": _message_html_body(msg, load_images=load_images),
@@ -92,8 +106,13 @@ def _thread_items(
                 "bcc_for_view": thread_copy.bcc_snapshot,
                 "is_outgoing": copy_is_outgoing(thread_copy, mailbox),
                 "is_anchor": thread_copy.id == anchor.id,
+                "sort_at": msg.sent_at or thread_copy.created_at,
             }
         )
+    conv_ids = [item["message"].conversation_id for item in items if item["message"].conversation_id]
+    for event in ConversationEvent.objects.filter(conversation_id__in=conv_ids):
+        items.append({"kind": "event", "body": event.body, "sort_at": event.created_at})
+    items.sort(key=lambda item: item["sort_at"])
     count = len(items)
     for index, item in enumerate(items):
         item["starts_expanded"] = count <= 1 or index == count - 1
@@ -142,44 +161,90 @@ def inbox(request: HttpRequest) -> HttpResponse:
     if notice is not None:
         return notice
     detach_catchall(mailbox)
-    if request.GET.get("new") == "1":
-        return _new_chat(request, mailbox)
+    ensure_mailbox_conversations(mailbox)
+    new_kind = (request.GET.get("new") or "").strip()
+    if new_kind in ("1", "channel", "message"):
+        return _new_chat(request, mailbox, kind="message" if new_kind == "message" else "channel")
     selected = None
     raw_project = request.GET.get("project")
     if raw_project and raw_project.isdigit():
         selected = Project.objects.filter(mailbox=mailbox, pk=int(raw_project)).first()
     contact_address = (request.GET.get("contact") or "").strip()
+    raw_dm = (request.GET.get("dm") or "").strip()
     thread = (request.GET.get("thread") or "").strip()
     if thread == ALL_THREADS:
         thread = ""
-    if selected is not None:
+    raw_channel = (request.GET.get("channel") or "").strip()
+    open_conv = None
+    if raw_channel.isdigit():
+        open_conv = Conversation.objects.filter(mailbox=mailbox, pk=int(raw_channel)).first()
+    if open_conv is not None and not contact_address and selected is None:
+        mode = "channel"
+        chats = conversation_messages(mailbox, open_conv)
+        contact_label = open_conv.topic
+        thread = open_conv.topic_key
+    elif raw_dm and selected is None:
+        mode = "dm"
+        open_conv = conversation_for_people(mailbox, raw_dm)
+        chats = conversation_messages(mailbox, open_conv) if open_conv is not None else []
+        contact_label = people_label(open_conv, mailbox) if open_conv is not None else raw_dm
+        if open_conv is not None:
+            thread = open_conv.topic_key
+    elif selected is not None:
         mode = "group"
         chats = group_messages(mailbox, selected)
         contact_label = ""
     elif contact_address:
-        mode = "contact"
-        contact_label, chats = contact_messages(mailbox, contact_address)
-        if not chats:
+        mode = "dm"
+        contact_label, _all = contact_messages(mailbox, contact_address)
+        if not contact_label:
             contact_label = contact_address
+        if thread:
+            open_conv = conversation_for_topic(
+                mailbox,
+                thread,
+                contact=contact_key(contact_address),
+                project=None,
+            )
+        if open_conv is None:
+            open_conv = (
+                Conversation.objects.filter(
+                    mailbox=mailbox,
+                    participants__address=contact_key(contact_address),
+                    participants__active=True,
+                )
+                .distinct()
+                .order_by("-id")
+                .first()
+            )
+        chats = conversation_messages(mailbox, open_conv) if open_conv is not None else []
+        if open_conv is not None:
+            thread = open_conv.topic_key
+            contact_label = people_label(open_conv, mailbox) or contact_label
     else:
         mode = "contacts"
         chats = contact_chats(mailbox)
         contact_label = ""
-    if mode in ("contact", "group") and request.method == "POST":
+    if mode in ("dm", "channel", "group") and request.method == "POST":
+        bound_thread = thread if (raw_channel or raw_dm or request.GET.get("thread") or mode == "channel") else ""
         sent = _send_chat_message(
             request,
             mailbox,
-            mode=mode,
+            mode="contact" if mode == "dm" else ("group" if mode == "group" else "contact"),
             chats=chats,
-            contact_address=contact_key(contact_address) if contact_address else "",
+            contact_address=contact_key(contact_address) if contact_address else _primary_contact(open_conv, mailbox),
             project=selected,
-            thread=thread,
+            thread=bound_thread,
+            return_dm=people_key(open_conv, mailbox) if mode == "dm" and open_conv is not None else "",
         )
         if sent is not None:
             return sent
-    options = subject_options(chats) if mode in ("contact", "group") else []
-    visible = filter_thread(chats, thread) if mode in ("contact", "group") else chats
-    can_compose = mode == "contact" or (mode == "group" and bool(chats))
+    visible = with_events(chats) if mode in ("dm", "channel", "group") else chats
+    can_compose = open_conv is not None or (mode == "group" and bool(chats))
+    if mode == "group" and open_conv is None and thread:
+        open_conv = conversation_for_topic(mailbox, thread, project=selected)
+    participants = list(open_conv.participants.filter(active=True)) if open_conv is not None else []
+    topic_value = open_conv.topic if open_conv is not None else ""
     return render(
         request,
         "mail/chats.html",
@@ -191,11 +256,14 @@ def inbox(request: HttpRequest) -> HttpResponse:
             "chats": visible,
             "contact_label": contact_label,
             "contact_address": contact_key(contact_address) if contact_address else "",
-            "subject_options": options,
             "thread_filter": thread,
-            "compose_subject": compose_subject(chats, thread),
+            "compose_subject": topic_value,
             "can_compose": can_compose,
-            "show_subjects": not thread,
+            "participants": participants,
+            "known_addresses": known_addresses(mailbox) if mode in ("dm", "channel", "group", "new") else [],
+            "show_subjects": False,
+            "open_channel": open_conv.id if open_conv is not None else None,
+            "active_dm": people_key(open_conv, mailbox) if mode == "dm" and open_conv is not None else "",
             "chat_base_url": _chat_url(
                 contact=contact_key(contact_address) if contact_address else "",
                 project_id=selected.id if selected is not None else None,
@@ -204,72 +272,193 @@ def inbox(request: HttpRequest) -> HttpResponse:
     )
 
 
-def _chat_url(*, contact: str = "", project_id: int | None = None, thread: str = "") -> str:
+def _primary_contact(conversation, mailbox) -> str:
+    if conversation is None:
+        return ""
+    own = (mailbox.address or "").casefold()
+    for part in conversation.participants.filter(active=True).order_by("id"):
+        if part.address != own:
+            return part.address
+    return ""
+
+
+def _chat_url(*, contact: str = "", project_id: int | None = None, thread: str = "", channel_id: int | None = None) -> str:
     params: dict[str, str] = {}
-    if project_id:
+    if channel_id:
+        params["channel"] = str(channel_id)
+    elif project_id:
         params["project"] = str(project_id)
     elif contact:
         params["contact"] = contact
-    if thread and thread != ALL_THREADS:
+    elif thread and thread != ALL_THREADS:
         params["thread"] = thread
     query = urlencode(params)
     url = reverse("mail_inbox")
     return f"{url}?{query}" if query else url
 
 
-def _send_chat_message(request, mailbox, *, mode, chats, contact_address, project, thread):
-    body = (request.POST.get("body") or "").strip()
-    subject = (request.POST.get("subject") or "").strip()
-    if not body:
-        messages.error(request, "Write a message first.")
-        return None
-    if mode == "contact":
-        recipients = [contact_address] if contact_address else []
-    else:
-        recipients = []
-        own = (mailbox.address or "").casefold()
-        for item in chats:
-            addr = contact_key(counterparty(item["copy"].message, mailbox.address))
-            if addr and "@" in addr and addr != own and addr not in recipients:
-                recipients.append(addr)
-    if not recipients:
-        messages.error(request, "This conversation has no recipient yet.")
-        return None
-    target = reply_target(chats, subject)
+def _reply_header_kwargs(msg) -> dict:
+    mid = effective_message_id(msg)
+    if not mid:
+        return {}
+    return {"in_reply_to": mid, "references": reference_chain(msg) or mid}
+
+
+def _send_kwargs(spec) -> dict:
     kwargs = {}
-    if target is not None:
-        message_id = effective_message_id(target.message)
-        if message_id:
-            kwargs["in_reply_to"] = message_id
-            kwargs["references"] = message_id
+    if spec.cc:
+        kwargs["cc"] = spec.cc
+    if spec.bcc:
+        kwargs["bcc"] = spec.bcc
+    if spec.in_reply_to:
+        kwargs["in_reply_to"] = spec.in_reply_to
+    if spec.references:
+        kwargs["references"] = spec.references
+    return kwargs
+
+
+def _send_chat_message(request, mailbox, *, mode, chats, contact_address, project, thread, return_dm=""):
+    body = request.POST.get("body") or ""
+    subject = (request.POST.get("subject") or "").strip()
     try:
-        send_compose(
+        spec = plan_chat_send(
             mailbox,
-            from_address=mailbox.address,
-            to=recipients,
+            mode=mode,
+            chats=chats,
+            contact_address=contact_address,
+            project=project,
+            thread=thread,
             subject=subject,
-            text=body,
-            **kwargs,
+            body=body,
+            add_raw=request.POST.get("add") or "",
+            drop_raw=request.POST.get("drop") or "",
         )
-    except Exception as exc:
+    except ValueError as exc:
         messages.error(request, str(exc))
         return None
+    try:
+        outbound = send_compose(
+            mailbox,
+            from_address=mailbox.address,
+            to=spec.to,
+            subject=spec.subject,
+            text=spec.text,
+            **_send_kwargs(spec),
+        )
+    except Exception as exc:
+        discard_failed_spec(spec)
+        messages.error(request, str(exc))
+        return None
+    finalize_chat_send(mailbox, outbound, spec)
     messages.success(request, "Message queued.")
-    sent_thread = thread_value(subject)
-    next_thread = thread if not thread or thread == sent_thread else sent_thread
+    if return_dm:
+        return redirect(f"{reverse('mail_inbox')}?dm={return_dm}")
+    if spec.conversation is not None:
+        return redirect(_chat_url(channel_id=spec.conversation.id))
     return redirect(
         _chat_url(
             contact=contact_address,
             project_id=project.id if project is not None else None,
-            thread=next_thread,
+            thread=thread_value(spec.subject),
         )
     )
 
 
-def _new_chat(request: HttpRequest, mailbox) -> HttpResponse:
+def _queue_new_conversation(request, mailbox, recipients, subject, body, *, as_dm=False):
+    spec = None
+    try:
+        spec = plan_chat_send(
+            mailbox,
+            mode="new",
+            chats=[],
+            contact_address=contact_key(recipients[0]),
+            project=None,
+            thread="",
+            subject=subject,
+            body=body,
+            add_raw=request.POST.get("add") or "",
+            extra_to=recipients,
+        )
+        outbound = send_compose(
+            mailbox,
+            from_address=mailbox.address,
+            to=spec.to,
+            subject=spec.subject,
+            text=spec.text,
+            **_send_kwargs(spec),
+        )
+        finalize_chat_send(mailbox, outbound, spec)
+        if as_dm and spec.conversation is not None:
+            spec.conversation.topic_key = "dm:" + people_key(spec.conversation, mailbox)
+            spec.conversation.save(update_fields=["topic_key"])
+        messages.success(request, "Message queued.")
+        if as_dm and spec.conversation is not None:
+            return redirect(f"{reverse('mail_inbox')}?dm={people_key(spec.conversation, mailbox)}")
+        if spec.conversation is not None:
+            return redirect(_chat_url(channel_id=spec.conversation.id))
+        return redirect("mail_inbox")
+    except ValueError as exc:
+        messages.error(request, str(exc))
+    except Exception as exc:
+        if spec is not None:
+            discard_failed_spec(spec)
+        messages.error(request, str(exc))
+    return None
+
+
+def _send_into_channel(request, mailbox, channel_id: int, body: str):
+    conversation = Conversation.objects.filter(mailbox=mailbox, pk=channel_id).first()
+    if conversation is None:
+        messages.error(request, "Choose a channel.")
+        return None
+    if not body.strip():
+        messages.error(request, "Write a message first.")
+        return None
+    posted = request.POST.copy()
+    posted["body"] = body
+    posted["subject"] = conversation.topic
+    request.POST = posted
+    return _send_chat_message(
+        request,
+        mailbox,
+        mode="contact",
+        chats=conversation_messages(mailbox, conversation),
+        contact_address=_primary_contact(conversation, mailbox),
+        project=None,
+        thread=conversation.topic_key,
+    )
+
+
+def _continue_direct(request, mailbox, conversation, body: str):
+    saved = conversation.topic_key
+    normal = topic_key(conversation.topic)
+    conversation.topic_key = normal
+    conversation.save(update_fields=["topic_key"])
+    posted = request.POST.copy()
+    posted["body"] = body
+    posted["subject"] = conversation.topic
+    request.POST = posted
+    try:
+        return _send_chat_message(
+            request,
+            mailbox,
+            mode="contact",
+            chats=conversation_messages(mailbox, conversation),
+            contact_address=_primary_contact(conversation, mailbox),
+            project=None,
+            thread=normal,
+            return_dm=people_key(conversation, mailbox),
+        )
+    finally:
+        conversation.topic_key = saved
+        conversation.save(update_fields=["topic_key"])
+
+
+def _new_chat(request: HttpRequest, mailbox, *, kind: str = "message") -> HttpResponse:
     draft_to = ""
     draft_body = ""
     draft_subject = ""
+    draft_channel = ""
     if request.method == "POST":
         draft_body = (request.POST.get("body") or "").strip()
         draft_subject = (request.POST.get("subject") or "").strip()
@@ -278,21 +467,23 @@ def _new_chat(request: HttpRequest, mailbox) -> HttpResponse:
         if not draft_body:
             messages.error(request, "Write a message first.")
         elif not recipients:
-            messages.info(request, "Destination is still unspecified.")
+            messages.info(request, "Add at least one participant.")
+        elif draft_subject:
+            sent = _queue_new_conversation(request, mailbox, recipients, draft_subject, draft_body)
+            if sent is not None:
+                return sent
         else:
-            subject = (request.POST.get("subject") or "").strip()
-            try:
-                send_compose(
-                    mailbox,
-                    from_address=mailbox.address,
-                    to=recipients,
-                    subject=subject,
-                    text=draft_body,
-                )
-                messages.success(request, "Message queued.")
-                return redirect(f"{reverse('mail_inbox')}?contact={contact_key(recipients[0])}")
-            except Exception as exc:
-                messages.error(request, str(exc))
+            key = ",".join(sorted(contact_key(item) for item in recipients))
+            existing = direct_message_for_people(mailbox, key)
+            if existing is not None:
+                sent = _continue_direct(request, mailbox, existing, draft_body)
+                if sent is not None:
+                    return sent
+            else:
+                label = ", ".join(contact_key(item).split("@")[0] for item in recipients)
+                sent = _queue_new_conversation(request, mailbox, recipients, label, draft_body, as_dm=True)
+                if sent is not None:
+                    return sent
     return render(
         request,
         "mail/chats.html",
@@ -301,6 +492,7 @@ def _new_chat(request: HttpRequest, mailbox) -> HttpResponse:
             "active_nav": Folder.INBOX,
             "selected_project": None,
             "mode": "new",
+            "new_kind": kind,
             "new_message": True,
             "chats": [],
             "contact_label": "",
@@ -309,6 +501,9 @@ def _new_chat(request: HttpRequest, mailbox) -> HttpResponse:
             "draft_to": draft_to,
             "draft_body": draft_body,
             "draft_subject": draft_subject,
+            "draft_channel": draft_channel,
+            "participants": [],
+            "known_addresses": known_addresses(mailbox),
         },
     )
 
@@ -382,6 +577,7 @@ def message_detail(request: HttpRequest, copy_id: int) -> HttpResponse:
             "mailbox": mailbox,
             "can_reply": copy.folder != Folder.TRASH,
             "compose_mode": compose_mode,
+            "thread_message_count": sum(1 for item in thread if item.get("kind") != "event"),
             **_reply_recipient_context(copy, mailbox),
         },
     )
@@ -417,12 +613,16 @@ def compose(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
         to_raw = request.POST.get("to", "")
         to = [x.strip() for x in to_raw.split(",") if x.strip()]
+        subject = request.POST.get("subject", "")
+        if topic_is_generic(subject):
+            messages.error(request, "Add a topic before sending.")
+            return render(request, "mail/compose.html", {"mailbox": mailbox, "active_nav": "compose"})
         try:
             send_compose(
                 mailbox,
                 from_address=request.POST.get("from", mailbox.address),
                 to=to,
-                subject=request.POST.get("subject", ""),
+                subject=subject,
                 text=request.POST.get("body", ""),
             )
             messages.success(request, "Message queued.")
@@ -438,15 +638,19 @@ def reply(request: HttpRequest, copy_id: int) -> HttpResponse:
     copy = get_object_or_404(MessageCopy, pk=copy_id, mailbox=mailbox)
     msg = copy.message
     if request.method == "POST":
-        send_compose(
+        to_addr = msg.reply_to or msg.from_address
+        headers = _reply_header_kwargs(msg)
+        cc = active_cc_addresses(msg, mailbox, [to_addr])
+        outbound = send_compose(
             mailbox,
             from_address=mailbox.address,
-            to=[msg.reply_to or msg.from_address],
+            to=[to_addr],
+            cc=cc or None,
             subject=f"Re: {msg.subject}",
             text=request.POST.get("body", ""),
-            in_reply_to=msg.message_id,
-            references=msg.message_id,
+            **headers,
         )
+        attach_to_parent(mailbox, outbound, msg)
         messages.success(request, "Reply queued.")
         return redirect("mail_message", copy_id=copy.id)
     if request.GET.get("full") == "1":
@@ -467,7 +671,7 @@ def reply_all(request: HttpRequest, copy_id: int) -> HttpResponse:
     copy = get_object_or_404(MessageCopy, pk=copy_id, mailbox=mailbox)
     to_list, cc_list, bcc_list = reply_all_recipients(copy, mailbox)
     if request.method == "POST":
-        send_compose(
+        outbound = send_compose(
             mailbox,
             from_address=mailbox.address,
             to=to_list,
@@ -475,9 +679,9 @@ def reply_all(request: HttpRequest, copy_id: int) -> HttpResponse:
             bcc=bcc_list if bcc_list else None,
             subject=f"Re: {copy.message.subject}",
             text=request.POST.get("body", ""),
-            in_reply_to=copy.message.message_id,
-            references=copy.message.message_id,
+            **_reply_header_kwargs(copy.message),
         )
+        attach_to_parent(mailbox, outbound, copy.message)
         messages.success(request, "Reply queued.")
         return redirect("mail_message", copy_id=copy.id)
     if request.GET.get("full") == "1":

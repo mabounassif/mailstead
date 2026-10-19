@@ -115,6 +115,9 @@ def ingest_inbound(email_id: str, webhook_meta: dict | None = None, *, notify: b
                     folder=folder,
                     bcc_snapshot=bcc_str if _is_sender_copy(mb, meta) else "",
                 )
+                from mail.conversations import assign_inbound_message
+
+                assign_inbound_message(msg, mb, copy)
                 if notify and folder == Folder.INBOX:
                     from notifications.scheduling import schedule_new_mail_push
 

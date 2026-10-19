@@ -1,6 +1,9 @@
 from django.contrib import admin
 
 from mail.models import (
+    Conversation,
+    ConversationEvent,
+    ConversationParticipant,
     FilterRule,
     Message,
     MessageAttachment,
@@ -9,6 +12,35 @@ from mail.models import (
     UnroutedMessage,
     WebhookEvent,
 )
+
+
+class _ReadOnlyAdmin(admin.ModelAdmin):
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(Conversation)
+class ConversationAdmin(_ReadOnlyAdmin):
+    list_display = ("topic", "mailbox", "topic_key", "created_at")
+    search_fields = ("topic", "topic_key")
+
+
+@admin.register(ConversationParticipant)
+class ConversationParticipantAdmin(_ReadOnlyAdmin):
+    list_display = ("conversation", "address", "kind", "active")
+    list_filter = ("kind", "active")
+
+
+@admin.register(ConversationEvent)
+class ConversationEventAdmin(_ReadOnlyAdmin):
+    list_display = ("conversation", "kind", "address", "created_at")
+    list_filter = ("kind",)
 
 
 @admin.register(Message)
