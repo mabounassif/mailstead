@@ -45,3 +45,24 @@ jobs:
         run: npm run build
       - name: Verify pages and documentation exports
         run: npm run check:site
+
+  mobile:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - name: Install mobile dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Typecheck Expo app
+        run: npm run typecheck
+      - name: Unit tests
+        run: npm test
+      - name: Expo doctor
+        run: npx expo-doctor
