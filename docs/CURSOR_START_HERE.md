@@ -20,6 +20,9 @@ API exists here. README/roadmap descriptions of the earlier folder UI were stale
 - #26: align public positioning, screenshots and capability claims with verified
   behavior. Preserve the custom-domain email setup path and current branding.
 - Mail reliability/account isolation fixes remain valid work at any time.
+- Optional: Expo companion in `mobile/` (WebView shell + EAS profiles). Store
+  publication still needs operator Expo/Apple/Google accounts; there is no
+  mobile REST API. See `docs/mobile.md`.
 
 Platform first proves signup, an actual synthetic sandbox run, diagnostics and
 private publication. Public agent UI follows the integration contract. Contract
