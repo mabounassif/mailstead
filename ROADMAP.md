@@ -44,6 +44,9 @@ backlog remains valid alongside those product priorities:
 - Richer **filter rules** UI and junk feedback
 - Stronger **search** (full-text or indexed fields beyond current basics)
 - **Import/export** improvements for migrations between hosts
+- Optional **Expo** companion under [`mobile/`](mobile/README.md) — WebView shell
+  of `PUBLIC_URL` for App Store / Play distribution; not a native UI rewrite and
+  not part of the one-container default deploy ([docs/mobile.md](docs/mobile.md))
 
 ## Non-goals (default deployment)
 
@@ -51,7 +54,7 @@ These stay out of the one-service template unless there is a strong reason to ad
 
 - Redis, Celery, or a separate message broker
 - SMTP/IMAP server or desktop mail clients as first-class targets
-- A separate frontend build (React/Vue) — server templates + HTMX remain the default
+- A separate frontend build (React/Vue) as the default web UI — server templates + HTMX remain the default; the optional `mobile/` Expo package is a companion shell, not a replacement
 - Object storage as a hard requirement (blobs on volume / provider APIs)
 
 ## How to influence the roadmap

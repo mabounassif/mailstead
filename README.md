@@ -10,7 +10,7 @@ The direction is conversations where people and installed agent contacts work to
   <img src="docs/assets/screenshots/inbox.png" alt="Mailstead inbox" width="920" />
 </p>
 
-**Stack:** Django 5.2, HTMX, SQLite (or Postgres via `DATABASE_URL`), in-process background jobs.
+**Stack:** Django 5.2, HTMX, SQLite (or Postgres via `DATABASE_URL`), in-process background jobs. Optional Expo companion in [`mobile/`](mobile/README.md) for store builds (WebView of your instance; see [docs/mobile.md](docs/mobile.md)).
 
 ## Features
 

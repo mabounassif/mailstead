@@ -23,3 +23,9 @@ htmlcov/
 .railway-ssh-key.pub
 .env.*
 !.env.example
+
+# Expo / EAS local state (mobile/ has its own ignores; keep secrets out of root too)
+mobile/.env.local
+mobile/.expo/
+**/credentials.json
+**/google-service-account.json
