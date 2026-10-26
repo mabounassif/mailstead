@@ -1,0 +1,24 @@
+{% extends "mail/base_mail.html" %}
+{% load static %}
+{% block title %}Needs you — Mailstead{% endblock %}
+{% block mail_content %}
+<div class="mail-pane mail-pane--list review-pane">
+  <div id="review-app" class="review-app">
+    <div id="review-root" class="review-root">
+      <p class="review-meta" role="status">Loading requests…</p>
+    </div>
+    <p id="review-live" class="review-live" aria-live="polite"></p>
+    <dialog id="review-dialog" aria-labelledby="review-dialog-title">
+      <h2 id="review-dialog-title">Confirm this decision?</h2>
+      <p id="review-dialog-body"></p>
+      <div class="review-dialog__actions">
+        <button type="button" class="review-primary" id="review-dialog-confirm">Confirm</button>
+        <button type="button" class="review-secondary" id="review-dialog-cancel">Cancel</button>
+      </div>
+    </dialog>
+  </div>
+</div>
+{% endblock %}
+{% block review_scripts %}
+<script src="{% static 'mailstead/review_page.js' %}?v=20261025h"></script>
+{% endblock %}

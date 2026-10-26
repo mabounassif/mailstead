@@ -21,6 +21,17 @@
       <span class="rail-btn__label">Drive</span>
     </a>
     <a
+      class="rail-btn rail-btn--review{% if active_nav == 'review' %} is-active{% endif %}"
+      href="{% url 'workspace_review' %}"
+      data-review-link
+      aria-label="Review queue"
+      {% if active_nav == 'review' %}aria-current="page"{% endif %}
+    >
+      {% icon "shield-zap" %}
+      <span class="rail-btn__label">Review</span>
+      <span class="rail-btn__badge" data-review-badge hidden aria-hidden="true"></span>
+    </a>
+    <a
       class="rail-btn{% if active_nav == 'contacts' %} is-active{% endif %}"
       href="{% url 'workspace_contacts' %}"
     >

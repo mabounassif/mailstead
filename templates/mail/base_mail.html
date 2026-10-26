@@ -35,5 +35,9 @@
 </div>
 {% endblock %}
 {% block extra_scripts %}
-<script src="{% static 'mailstead/app.js' %}?v=20261019n"></script>
+<script>document.documentElement.dataset.mailbox = "{{ mailbox_address|default:'local'|escapejs }}";</script>
+<script src="{% static 'mailstead/review_queue.js' %}?v=20261025c"></script>
+<script src="{% static 'mailstead/app.js' %}?v=20261025a"></script>
+<script>if (window.MailsteadReview) MailsteadReview.mountBadge();</script>
+{% block review_scripts %}{% endblock %}
 {% endblock %}

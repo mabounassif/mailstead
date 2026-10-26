@@ -12,6 +12,7 @@ urlpatterns = [
     path("passwords/", workspace_views.passwords, name="workspace_passwords"),
     path("passwords/<int:entry_id>/delete/", workspace_views.delete_password, name="workspace_password_delete"),
     path("contacts/", workspace_views.contacts, name="workspace_contacts"),
+    path("review/", workspace_views.review, name="workspace_review"),
     path(
         "agents/",
         RedirectView.as_view(pattern_name="workspace_contacts", permanent=False),

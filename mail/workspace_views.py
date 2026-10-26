@@ -177,6 +177,19 @@ def contacts(request: HttpRequest) -> HttpResponse:
 
 
 @login_required
+def review(request: HttpRequest) -> HttpResponse:
+    """Local sample review queue. Decisions stay in the browser."""
+    _mailbox, notice = _workspace_or_notice(request)
+    if notice is not None:
+        return notice
+    return render(
+        request,
+        "mail/review.html",
+        {"active_nav": "review"},
+    )
+
+
+@login_required
 @require_POST
 def create_project(request: HttpRequest) -> HttpResponse:
     mailbox, notice = _workspace_or_notice(request)
