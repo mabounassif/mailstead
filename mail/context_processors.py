@@ -9,11 +9,25 @@ from mail.models import Folder, MessageCopy
 
 def mail_nav_counts(request: HttpRequest) -> dict:
     if not request.user.is_authenticated:
-        return {"inbox_unread_count": 0, "nav_projects": [], "nav_dms": [], "nav_channels": [], "nav_people": []}
+        return {
+            "inbox_unread_count": 0,
+            "nav_projects": [],
+            "nav_dms": [],
+            "nav_channels": [],
+            "nav_people": [],
+            "mailbox_address": "",
+        }
     try:
         mailbox = request.user.mailbox
     except Mailbox.DoesNotExist:
-        return {"inbox_unread_count": 0, "nav_projects": [], "nav_dms": [], "nav_channels": [], "nav_people": []}
+        return {
+            "inbox_unread_count": 0,
+            "nav_projects": [],
+            "nav_dms": [],
+            "nav_channels": [],
+            "nav_people": [],
+            "mailbox_address": "",
+        }
     count = MessageCopy.objects.filter(
         mailbox=mailbox,
         folder=Folder.INBOX,
@@ -26,4 +40,5 @@ def mail_nav_counts(request: HttpRequest) -> dict:
         "nav_dms": dm_rows(mailbox),
         "nav_channels": channel_rows(mailbox),
         "nav_people": person_rows(mailbox),
+        "mailbox_address": mailbox.address,
     }
