@@ -66,8 +66,16 @@ def build_new_mail_payload(user, mailbox: Mailbox, copy_ids: list[int]) -> dict 
 
 
 def deliver_to_user(user, payload: dict) -> int:
-    if not push_configured():
-        return 0
+    sent = 0
+    if push_configured():
+        sent += _deliver_web(user, payload)
+    from notifications.expo import deliver_expo
+
+    sent += deliver_expo(user, payload)
+    return sent
+
+
+def _deliver_web(user, payload: dict) -> int:
     sent = 0
     for sub in PushSubscription.objects.filter(user=user, revoked_at__isnull=True):
         ok, err, _status = send_push_safe(sub.subscription_info(), payload)

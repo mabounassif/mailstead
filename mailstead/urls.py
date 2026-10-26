@@ -24,6 +24,7 @@ urlpatterns = [
     path("manifest.webmanifest", web_manifest, name="web_manifest"),
     path("sw.js", service_worker, name="service_worker"),
     path("notifications/", include("notifications.urls")),
+    path("api/v1/", include("api.urls")),
     path("accounts/", include("accounts.urls")),
     path("mail/", include("mail.urls")),
     path("ops/", include("storage.urls")),
