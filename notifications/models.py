@@ -27,6 +27,23 @@ class NotificationPreference(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 
+class NativePushDevice(models.Model):
+    """Expo push token for the native app. The token is required to deliver a notification."""
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="native_push_devices",
+    )
+    token = models.CharField(max_length=255)
+    token_hash = models.CharField(max_length=64, unique=True)
+    label = models.CharField(max_length=64, blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_success_at = models.DateTimeField(null=True, blank=True)
+    revoked_at = models.DateTimeField(null=True, blank=True)
+    last_error = models.CharField(max_length=128, blank=True, default="")
+
+
 class PushSubscription(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
