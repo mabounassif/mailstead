@@ -51,6 +51,7 @@ Open `/setup/<BOOTSTRAP_TOKEN>` once (use the `BOOTSTRAP_TOKEN` from your enviro
 
 ```bash
 pytest
+node --test core/static/mailstead/review_queue.test.js
 ```
 
 Postgres integration tests (opt-in):
@@ -82,7 +83,9 @@ The image runs `python -m mailstead.run` with a volume at `/data`. That command 
 | `jobs/` | DB-backed job queue; in-process under gunicorn, or `manage.py worker` with `runserver` |
 | `provider/` | Resend API, webhooks, usage |
 | `storage/` | Quotas, ops dashboard (`/ops/`) |
-| `notifications/` | Web Push + PWA bits |
+| `notifications/` | Web Push, PWA bits, and optional Expo device tokens |
+| `api/` | Versioned JSON API for the phone app (`/api/v1/`) |
+| `mobile/` | Optional Expo client. Not part of the Docker image |
 | `core/` | Settings, health checks, static CSS/JS |
 | `templates/` | Django templates |
 | `railway/` | Published Railway template config |
@@ -104,3 +107,5 @@ The script migrates an isolated `DATA_ROOT`, seeds a demo mailbox, starts a temp
 All knobs are listed in [`.env.example`](../.env.example). Deploy notes: [Railway](deploy-railway.md), [operations](operations.md).
 
 Web Push is optional. Generate VAPID keys (`uv run vapid --gen`, then `uv run vapid --applicationServerKey -k private_key.pem`) and set `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY`. On iPhone, use Safari → Add to Home Screen, then **Notifications** in the mail sidebar.
+
+Native push for the Expo app is also optional. Set `EXPO_ACCESS_TOKEN` only when you want the server to deliver to registered phones. Without it, the app still saves notification preferences.

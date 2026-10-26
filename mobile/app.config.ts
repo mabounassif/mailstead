@@ -25,7 +25,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     bundleIdentifier: BUNDLE_ID,
     buildNumber: "1",
     infoPlist: {
-      // Session cookies for the user's Mailstead host; no encryption beyond TLS.
+      // Bearer token for the user's Mailstead host; no encryption beyond TLS.
       ITSAppUsesNonExemptEncryption: false,
       NSAppTransportSecurity: {
         NSAllowsArbitraryLoads: false,
@@ -45,7 +45,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       monochromeImage: "./assets/android-icon-monochrome.png",
     },
     predictiveBackGestureEnabled: false,
-    permissions: ["INTERNET", "ACCESS_NETWORK_STATE"],
+    permissions: ["INTERNET", "ACCESS_NETWORK_STATE", "POST_NOTIFICATIONS"],
   },
   web: {
     favicon: "./assets/favicon.png",
@@ -61,6 +61,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     "expo-system-ui",
+    "expo-secure-store",
+    [
+      "expo-notifications",
+      {
+        color: "#1a73e8",
+      },
+    ],
   ],
   experiments: {
     typedRoutes: true,
