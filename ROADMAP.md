@@ -14,8 +14,10 @@ authority and execution. Planned features below are not availability claims.
 - **Filtering** — Local filter rules and junk folder; DMARC-based junk routing
 - **Operations** — `/data` storage ledger, quotas, overflow, ops dashboard; Resend usage snapshots and alert records
 - **Deploy** — Single-container web + worker, Docker, [Railway docs](docs/deploy-railway.md), [published template](https://railway.com/deploy/mailstead)
-- **Notifications** — Web Push + PWA install path (VAPID), per-user subscription settings
+- **Notifications** — Web Push + PWA install path (VAPID), per-user subscription settings. The optional phone app can also register an Expo push token when `EXPO_ACCESS_TOKEN` is set.
 - **Account safety** — Bootstrap setup, recovery email, rate limits, session handling
+- **Phone app** — Optional Expo client in [`mobile/`](mobile/README.md) for Messages, Drive, Contacts, and Settings over `/api/v1/`. The Django site remains the desktop UI and the one-container deploy. Store builds and native push still need the operator's Expo, Apple, and Google accounts ([docs/mobile.md](docs/mobile.md)).
+- **Review queue** — A center navigation control opens “Needs you,” a local sample queue for access, sending, questions, and finished work. Decisions stay in the browser or on the phone. This is not a live permission gateway and does not send mail.
 
 ## Next
 
@@ -44,9 +46,6 @@ backlog remains valid alongside those product priorities:
 - Richer **filter rules** UI and junk feedback
 - Stronger **search** (full-text or indexed fields beyond current basics)
 - **Import/export** improvements for migrations between hosts
-- Optional **Expo** companion under [`mobile/`](mobile/README.md) — WebView shell
-  of `PUBLIC_URL` for App Store / Play distribution; not a native UI rewrite and
-  not part of the one-container default deploy ([docs/mobile.md](docs/mobile.md))
 
 ## Non-goals (default deployment)
 
@@ -54,7 +53,7 @@ These stay out of the one-service template unless there is a strong reason to ad
 
 - Redis, Celery, or a separate message broker
 - SMTP/IMAP server or desktop mail clients as first-class targets
-- A separate frontend build (React/Vue) as the default web UI — server templates + HTMX remain the default; the optional `mobile/` Expo package is a companion shell, not a replacement
+- A separate frontend build (React/Vue) as the default web UI — server templates + HTMX remain the default. The optional `mobile/` Expo app is a phone client, not the website
 - Object storage as a hard requirement (blobs on volume / provider APIs)
 
 ## How to influence the roadmap

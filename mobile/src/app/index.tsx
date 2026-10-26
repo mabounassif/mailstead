@@ -1,20 +1,26 @@
 import { Redirect } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { loadSavedInstanceUrl } from "@/lib/instanceUrl";
-import { colors } from "@/theme";
+import { loadToken } from "@/lib/session";
+import { Loading } from "@/components/ui";
 
 export default function IndexScreen() {
-  const [ready, setReady] = useState(false);
-  const [hasInstance, setHasInstance] = useState(false);
+  const [dest, setDest] = useState<"setup" | "login" | "app" | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       const url = await loadSavedInstanceUrl();
+      if (cancelled) {
+        return;
+      }
+      if (!url) {
+        setDest("setup");
+        return;
+      }
+      const token = await loadToken();
       if (!cancelled) {
-        setHasInstance(Boolean(url));
-        setReady(true);
+        setDest(token ? "app" : "login");
       }
     })();
     return () => {
@@ -22,25 +28,14 @@ export default function IndexScreen() {
     };
   }, []);
 
-  if (!ready) {
-    return (
-      <View style={styles.boot}>
-        <ActivityIndicator color={colors.accent} size="large" />
-      </View>
-    );
+  if (dest === "setup") {
+    return <Redirect href="/setup" />;
   }
-
-  if (hasInstance) {
-    return <Redirect href="/session" />;
+  if (dest === "login") {
+    return <Redirect href="/login" />;
   }
-  return <Redirect href="/setup" />;
+  if (dest === "app") {
+    return <Redirect href="/(app)/messages" />;
+  }
+  return <Loading />;
 }
-
-const styles = StyleSheet.create({
-  boot: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.bg,
-  },
-});

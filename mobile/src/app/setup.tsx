@@ -15,6 +15,7 @@ import {
   normalizeInstanceUrl,
   saveInstanceUrl,
 } from "@/lib/instanceUrl";
+import { clearToken } from "@/lib/session";
 import { colors } from "@/theme";
 
 export default function SetupScreen() {
@@ -35,8 +36,9 @@ export default function SetupScreen() {
     }
     setSaving(true);
     try {
+      await clearToken();
       await saveInstanceUrl(normalized.origin);
-      router.replace("/session");
+      router.replace("/login");
     } catch {
       setError("Could not save the instance URL. Try again.");
     } finally {
@@ -53,9 +55,8 @@ export default function SetupScreen() {
         <View style={styles.body}>
           <Text style={styles.brand}>Mailstead</Text>
           <Text style={styles.lead}>
-            Open your self-hosted Mailstead in a native shell. Sign-in and mail
-            stay on your server — this app does not add a separate account or
-            API.
+            Connect this app to your self-hosted Mailstead. Sign-in uses your
+            existing account on that server.
           </Text>
 
           <Text style={styles.label}>Instance URL</Text>
